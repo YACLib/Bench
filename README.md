@@ -24,10 +24,13 @@ sudo cpupower frequency-set --governor powersave
 </details>
 
 <details open>
-
 <summary> 
-About system
+Benchmark results
+
 <details>
+<summary>
+About system
+</summary>
 
 ```bash
 OS: Arch Linux x86_64
@@ -46,6 +49,7 @@ L1 Instruction 32 KiB (x4)
 L2 Unified 256 KiB (x4)
 L3 Unified 8192 KiB (x1)
 Load Average: 2.24, 1.56, 0.76
+
 ```
 
 </details>
