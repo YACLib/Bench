@@ -87,8 +87,6 @@ YACLibComplexBlob64                  40176 ns        40153 ns        17654
 FollyComplexBlob64                   42885 ns        42851 ns        17041
 YACLibComplexBlob128                 41073 ns        41014 ns        17024
 FollyComplexBlob128                  42016 ns        41978 ns        16553
-YACLibComplexBlob256                 44983 ns        44954 ns        15602
-FollyComplexBlob256                  44167 ns        44014 ns        16267
 YACLibNoContention                 1623865 ns       684637 ns         1027
 FollyNoContention                  2917857 ns       899710 ns          775
 YACLibContention                   3337525 ns       661014 ns         1107
