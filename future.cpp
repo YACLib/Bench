@@ -124,7 +124,7 @@ void YACLibFourThenOnThread(benchmark::State& state) {
 
 void FollyFourThenOnThread(benchmark::State& state) {
   for (auto _ : state) {
-    yb::SomeThensOnThread(4);
+    fy::SomeThensOnThread(4);
   }
 }
 
@@ -138,7 +138,7 @@ void YACLibFourThenOnThreadInline(benchmark::State& state) {
 
 void FollyFourThenOnThreadInline(benchmark::State& state) {
   for (auto _ : state) {
-    yb::SomeThensOnThread(4, true);
+    fy::SomeThensOnThread(4, true);
   }
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ void YACLibHundredThenOnThread(benchmark::State& state) {
 
 void FollyHundredThenOnThread(benchmark::State& state) {
   for (auto _ : state) {
-    yb::SomeThensOnThread(100);
+    fy::SomeThensOnThread(100);
   }
 }
 
@@ -165,7 +165,7 @@ void YACLibHundredThenOnThreadInline(benchmark::State& state) {
 
 void FollyHundredThenOnThreadInline(benchmark::State& state) {
   for (auto _ : state) {
-    yb::SomeThensOnThread(100, true);
+    fy::SomeThensOnThread(100, true);
   }
 }
 
