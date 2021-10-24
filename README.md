@@ -55,28 +55,28 @@ Load Average: 2.24, 1.56, 0.76
 --------------------------------------------------------------------------
 Benchmark                                Time             CPU   Iterations
 --------------------------------------------------------------------------
-STLConstantFuture                      665 ns          664 ns      1102341
-YACLibConstantFuture                  39.5 ns         39.5 ns     17759137
-FollyConstantFuture                   28.2 ns         28.1 ns     25026422
-STLPromiseAndFuture                    495 ns          494 ns      1381178
-YACLibPromiseAndFuture                60.5 ns         60.5 ns     11498653
-FollyPromiseAndFuture                 64.0 ns         64.0 ns     10812138
-YACLibOneThen                          141 ns          141 ns      5034779
-FollyOneThen                           167 ns          167 ns      4199227
-YACLibTwoThen                          225 ns          225 ns      3111868
-FollyTwoThen                           288 ns          287 ns      2409535
-YACLibFourThen                         392 ns          392 ns      1791787
-FollyFourThen                          536 ns          536 ns      1338499
-YACLibHundredThen                     9724 ns         9715 ns        84571
-FollyHundredThen                     12444 ns        12435 ns        56576
-YACLibFourThenOnThread               24139 ns        17061 ns        40884
-FollyFourThenOnThread                28743 ns        19254 ns        39393
-YACLibFourThenOnThreadInline         27274 ns        19789 ns        35370
-FollyFourThenOnThreadInline          30633 ns        20840 ns        33243
-YACLibHundredThenOnThread            45219 ns        32662 ns        21173
-FollyHundredThenOnThread             73015 ns        51052 ns        10000
-YACLibHundredThenOnThreadInline      38174 ns        31567 ns        19745
-FollyHundredThenOnThreadInline       47598 ns        30737 ns        22118
+STLConstantFuture                      511 ns          510 ns      1312484
+YACLibConstantFuture                  32.0 ns         31.9 ns     22096915
+FollyConstantFuture                   28.3 ns         28.3 ns     25076414
+STLPromiseAndFuture                    528 ns          528 ns      1309909
+YACLibPromiseAndFuture                62.2 ns         62.1 ns     10973978
+FollyPromiseAndFuture                 64.9 ns         64.9 ns     10741754
+YACLibOneThen                          147 ns          147 ns      4785874
+FollyOneThen                           172 ns          172 ns      4108779
+YACLibTwoThen                          236 ns          236 ns      2990642
+FollyTwoThen                           296 ns          296 ns      2349923
+YACLibFourThen                         415 ns          415 ns      1693791
+FollyFourThen                          558 ns          558 ns      1244561
+YACLibHundredThen                     8725 ns         8709 ns        79019
+FollyHundredThen                     12542 ns        12503 ns        56253
+YACLibFourThenOnThread               27789 ns        18837 ns        37001
+FollyFourThenOnThread                30961 ns        20014 ns        34970
+YACLibFourThenOnThreadInline         27312 ns        18980 ns        37703
+FollyFourThenOnThreadInline          34727 ns        22842 ns        34598
+YACLibHundredThenOnThread            53120 ns        36885 ns        18914
+FollyHundredThenOnThread             75488 ns        52666 ns        13471
+YACLibHundredThenOnThreadInline      43156 ns        33789 ns        20653
+FollyHundredThenOnThreadInline       54391 ns        34591 ns        20284
 ```
 
 </details>
