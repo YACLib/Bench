@@ -1,12 +1,18 @@
 #pragma once
 
 #include "../cmake-build-release/_deps/yaclib-src/src/util/intrusive_list.hpp"
+#include "yaclib/algo/when_all.hpp"
+#include "yaclib/algo/when_any.hpp"
 
 #include <yaclib/async/future.hpp>
 #include <yaclib/executor/inline.hpp>
 
 #include <condition_variable>
 #include <thread>
+
+#include <benchmark/benchmark.h>
+#include <folly/synchronization/Baton.h>
+#include <folly/synchronization/NativeSemaphore.h>
 
 namespace bench::yb {
 
@@ -104,5 +110,130 @@ void SomeThensOnThread(size_t n, bool run_inline = false) {
   f = Thens(std::move(f), n / 2, run_inline);
   Wait(f);
 }
+
+void NoContention(benchmark::State& state) {
+  state.PauseTiming();
+  std::vector<yaclib::Promise<int>> promises(10000);
+  std::vector<yaclib::Future<int>> futures;
+  futures.reserve(10000);
+
+  auto [f2, p2] = yaclib::MakeContract<void>();
+
+  for (auto& p : promises) {
+    futures.push_back(p.MakeFuture().Then(Incr<int>));
+  }
+
+  auto producer = std::thread([&, p2 = std::move(p2)]() mutable {
+    std::move(p2).Set();
+    for (auto& p : promises) {
+      std::move(p).Set(42);
+    }
+  });
+  Wait(f2);
+
+  state.ResumeTiming();
+  producer.join();
+  state.PauseTiming();
+}
+
+void Contention(benchmark::State& state) {
+  state.PauseTiming();
+
+  std::vector<yaclib::Promise<int>> promises(10000);
+  std::vector<yaclib::Future<int>> futures;
+  futures.reserve(10000);
+  folly::NativeSemaphore sem;
+  folly::Baton<> b1;
+  folly::Baton<> b2;
+  for (auto& p : promises) {
+    futures.push_back(p.MakeFuture());
+  }
+  auto producer = std::thread([&] {
+    b2.post();
+    for (auto& p : promises) {
+      sem.post();
+      std::move(p).Set(42);
+    }
+  });
+  auto consumer = std::thread([&] {
+    b1.post();
+    for (auto& f : futures) {
+      sem.wait();
+      f = std::move(f).Then(Incr<int>);
+    }
+  });
+  b1.wait();
+  b2.wait();
+
+  state.ResumeTiming();
+
+  consumer.join();
+  producer.join();
+
+  state.PauseTiming();
+}
+
+template <typename T>
+yaclib::Future<T> FGen() {
+  yaclib::Promise<T> p;
+  auto f = p.MakeFuture()
+               .Then([](T&& t) {
+                 return std::move(t);
+               })
+               .Then([](T&& t) {
+                 return yaclib::MakeFuture(std::move(t));
+               })
+               .Then([](T&& t) {
+                 return std::move(t);
+               })
+               .Then([](T&& t) {
+                 return yaclib::MakeFuture(std::move(t));
+               });
+  std::move(p).Set(T());
+  return f;
+}
+
+template <typename T>
+std::vector<yaclib::Future<T>> FsGen() {
+  std::vector<yaclib::Future<T>> fs;
+  fs.reserve(10);
+  for (auto i = 0; i < 10; i++) {
+    fs.push_back(FGen<T>());
+  }
+  return fs;
+}
+
+template <typename T>
+void ComplexBenchmark() {
+  {
+    auto fs = FsGen<T>();
+    yaclib::WhenAll(fs.begin(), fs.end()).Get().Ok();
+  }
+  {
+    auto fs = FsGen<T>();
+    yaclib::WhenAny(fs.begin(), fs.end()).Get().Ok();
+  }
+  {
+    auto fs = FsGen<T>();
+    for (auto& f : fs) {
+      f = std::move(f).Then([](const T& t) {
+        return t;
+      });
+    }
+  }
+  {
+    auto fs = FsGen<T>();
+    for (auto& f : fs) {
+      f = std::move(f).Then([](const T& t) {
+        return yaclib::MakeFuture(T(t));
+      });
+    }
+  }
+}
+
+template <size_t S>
+struct Blob {
+  char buf[S];
+};
 
 }  // namespace bench::yb

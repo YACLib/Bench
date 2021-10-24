@@ -1,8 +1,14 @@
 #pragma once
 
-#include <folly/Executor.h>
+#include <vector>
+
+#include <benchmark/benchmark.h>
+#include <folly/executors/InlineExecutor.h>
 #include <folly/futures/Future.h>
 #include <folly/futures/Promise.h>
+#include <folly/portability/GFlags.h>
+#include <folly/synchronization/Baton.h>
+#include <folly/synchronization/NativeSemaphore.h>
 
 namespace bench::fy {
 
@@ -93,5 +99,115 @@ void SomeThensOnThread(size_t n, bool run_inline = false) {
   f = Thens(std::move(f), n / 2, run_inline);
   f.wait();
 }
+
+void NoContention(benchmark::State& state) {
+  state.PauseTiming();
+
+  std::vector<folly::Promise<int>> promises(10000);
+  std::vector<folly::Future<int>> futures;
+  futures.reserve(10000);
+  folly::Baton<> b2;
+  for (auto& p : promises) {
+    futures.push_back(p.getFuture().then(Incr<int>));
+  }
+  auto producer = std::thread([&] {
+    b2.post();
+    for (auto& p : promises) {
+      std::move(p).setValue(42);
+    }
+  });
+  b2.wait();
+
+  state.ResumeTiming();
+
+  producer.join();
+
+  state.PauseTiming();
+}
+
+void Contention(benchmark::State& state) {
+  state.PauseTiming();
+
+  std::vector<folly::Promise<int>> promises(10000);
+  std::vector<folly::Future<int>> futures;
+  futures.reserve(10000);
+  folly::NativeSemaphore sem;
+  folly::Baton<> b1;
+  folly::Baton<> b2;
+  for (auto& p : promises) {
+    futures.push_back(p.getFuture());
+  }
+  auto producer = std::thread([&] {
+    b2.post();
+    for (auto& p : promises) {
+      sem.post();
+      std::move(p).setValue(42);
+    }
+  });
+  auto consumer = std::thread([&] {
+    b1.post();
+    for (auto& f : futures) {
+      sem.wait();
+      f = std::move(f).then(Incr<int>);
+    }
+  });
+  b1.wait();
+  b2.wait();
+
+  state.ResumeTiming();
+
+  consumer.join();
+  producer.join();
+
+  state.PauseTiming();
+}
+inline folly::InlineExecutor exe;
+
+template <typename T>
+folly::Future<T> FGen() {
+  folly::Promise<T> p;
+  auto f = p.getFuture()
+               .thenValue([](T&& t) {
+                 return std::move(t);
+               })
+               .thenValue([](T&& t) {
+                 return folly::makeFuture(std::move(t));
+               })
+               .thenValue([](T&& t) {
+                 return std::move(t);
+               })
+               .thenValue([](T&& t) {
+                 return folly::makeFuture(std::move(t));
+               });
+  p.setValue(T());
+  return f;
+}
+
+template <typename T>
+std::vector<folly::Future<T>> FsGen() {
+  std::vector<folly::Future<T>> fs;
+  fs.reserve(10);
+  for (auto i = 0; i < 10; i++) {
+    fs.push_back(FGen<T>());
+  }
+  return fs;
+}
+
+template <typename T>
+void ComplexBenchmark() {
+  folly::collectAll(FsGen<T>()).value();
+  folly::collectAny(FsGen<T>()).value();
+  folly::futures::mapValue(FsGen<T>(), [](const T& t) {
+    return t;
+  });
+  folly::futures::mapValue(FsGen<T>(), [](const T& t) {
+    return folly::makeFuture(T(t));
+  });
+}
+
+template <size_t S>
+struct Blob {
+  char buf[S];
+};
 
 }  // namespace bench::fy

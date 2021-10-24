@@ -77,6 +77,22 @@ YACLibHundredThenOnThread            53120 ns        36885 ns        18914
 FollyHundredThenOnThread             75488 ns        52666 ns        13471
 YACLibHundredThenOnThreadInline      43156 ns        33789 ns        20653
 FollyHundredThenOnThreadInline       54391 ns        34591 ns        20284
+YACLibComplexUnit                    39182 ns        39157 ns        17977
+FollyComplexUnit                     49353 ns        49318 ns        14191
+YACLibComplexBlob4                   38641 ns        38621 ns        18098
+FollyComplexBlob4                    48809 ns        48778 ns        14379
+YACLibComplexBlob8                   38387 ns        38269 ns        17942
+FollyComplexBlob8                    48119 ns        48092 ns        14557
+YACLibComplexBlob64                  40176 ns        40153 ns        17654
+FollyComplexBlob64                   42885 ns        42851 ns        17041
+YACLibComplexBlob128                 41073 ns        41014 ns        17024
+FollyComplexBlob128                  42016 ns        41978 ns        16553
+YACLibComplexBlob256                 44983 ns        44954 ns        15602
+FollyComplexBlob256                  44167 ns        44014 ns        16267
+YACLibNoContention                 1623865 ns       684637 ns         1027
+FollyNoContention                  2917857 ns       899710 ns          775
+YACLibContention                   3337525 ns       661014 ns         1107
+FollyContention                    5953766 ns       956817 ns          732
 ```
 
 </details>
