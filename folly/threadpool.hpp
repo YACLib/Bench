@@ -1,3 +1,3 @@
 #pragma once
 
-namespace bench::fy {}  // namespace bench::fy
+namespace bench::tp::fy {}  // namespace bench::tp::fy
