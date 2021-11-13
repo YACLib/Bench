@@ -14,7 +14,7 @@
 #include <folly/synchronization/Baton.h>
 #include <folly/synchronization/NativeSemaphore.h>
 
-namespace bench::yb {
+namespace bench::future::yb {
 
 class TestExecutor final : public yaclib::IExecutor {
  public:
@@ -234,4 +234,4 @@ struct Blob {
   char buf[S];
 };
 
-}  // namespace bench::yb
+}  // namespace bench::future::yb

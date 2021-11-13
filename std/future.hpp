@@ -4,7 +4,7 @@
 #include <future>
 #include <thread>
 
-namespace bench::sd {
+namespace bench::future::sd {
 
 std::future<int> MakeFuture(int x) {
   std::promise<int> p;
@@ -13,4 +13,4 @@ std::future<int> MakeFuture(int x) {
   return f;
 }
 
-}  // namespace bench::sd
+}  // namespace bench::future::sd

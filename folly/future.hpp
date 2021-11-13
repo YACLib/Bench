@@ -10,7 +10,7 @@
 #include <folly/synchronization/Baton.h>
 #include <folly/synchronization/NativeSemaphore.h>
 
-namespace bench::fy {
+namespace bench::future::fy {
 
 class TestExecutor final : public folly::Executor {
  public:
@@ -210,4 +210,4 @@ struct Blob {
   char buf[S];
 };
 
-}  // namespace bench::fy
+}  // namespace bench::future::fy
