@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../cmake-build-release/_deps/yaclib-src/src/util/intrusive_list.hpp"
+#include "../build-release-gcc/_deps/yaclib-src/src/util/intrusive_list.hpp"
 #include "yaclib/algo/when_all.hpp"
 #include "yaclib/algo/when_any.hpp"
 

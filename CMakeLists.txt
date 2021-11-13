@@ -126,7 +126,7 @@ endmacro()
 # YACLib ###############################################################################################################
 FetchContent_Declare(yaclib
   GIT_REPOSITORY https://github.com/YACLib/YACLib.git
-  GIT_TAG mbkkt_small_fixes
+  GIT_TAG madoka/lock-free-threadpool
   )
 FetchContent_MakeAvailable(yaclib)
 link_libraries(yaclib)
@@ -155,4 +155,5 @@ target_sources(${PROJECT_NAME}
   PRIVATE ${BENCH_HEADERS}
   )
 
-add_bench(future)
+#add_bench(future)
+add_bench(lock_free_threadpool)
