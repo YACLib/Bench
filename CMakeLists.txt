@@ -126,7 +126,7 @@ endmacro()
 # YACLib ###############################################################################################################
 FetchContent_Declare(yaclib
   GIT_REPOSITORY https://github.com/YACLib/YACLib.git
-  GIT_TAG mbkkt-dev
+  GIT_TAG mbkkt_small_fixes
   )
 FetchContent_MakeAvailable(yaclib)
 link_libraries(yaclib)

@@ -86,7 +86,7 @@ T Incr(yaclib::util::Result<T>&& r) {
 yaclib::Future<int> Thens(yaclib::Future<int> f, size_t n, bool runInline = false) {
   for (size_t i = 0; i < n; i++) {
     if (runInline) {
-      f = std::move(f).Then(yaclib::MakeInline(), Incr<int>);
+      f = std::move(f).ThenInline(Incr<int>);
     } else {
       f = std::move(f).Then(Incr<int>);
     }
@@ -102,10 +102,8 @@ void SomeThens(size_t n) {
 
 void SomeThensOnThread(size_t n, bool run_inline = false) {
   auto executor = std::make_unique<TestExecutor>(1);
-  auto f = yaclib::MakeFuture(42);
-  f.Via(executor.get());
+  auto f = yaclib::MakeFuture(42).Via(executor.get());
   f = Thens(std::move(f), n / 2, run_inline);
-  f.Via(executor.get());
   f = Thens(std::move(f), 1, false);
   f = Thens(std::move(f), n / 2, run_inline);
   Wait(f);

@@ -388,20 +388,20 @@ BENCHMARK(FollyComplexBlob64);
 BENCHMARK(YACLibComplexBlob128);
 BENCHMARK(FollyComplexBlob128);
 
-//BENCHMARK(YACLibComplexBlob256);
-//BENCHMARK(FollyComplexBlob256);
-//
-//BENCHMARK(YACLibComplexBlob512);
-//BENCHMARK(FollyComplexBlob512);
-//
-//BENCHMARK(YACLibComplexBlob1024);
-//BENCHMARK(FollyComplexBlob1024);
-//
-//BENCHMARK(YACLibComplexBlob2048);
-//BENCHMARK(FollyComplexBlob2048);
-//
-//BENCHMARK(YACLibComplexBlob4096);
-//BENCHMARK(FollyComplexBlob4096);
+BENCHMARK(YACLibComplexBlob256);
+BENCHMARK(FollyComplexBlob256);
+
+BENCHMARK(YACLibComplexBlob512);
+BENCHMARK(FollyComplexBlob512);
+
+BENCHMARK(YACLibComplexBlob1024);
+BENCHMARK(FollyComplexBlob1024);
+
+BENCHMARK(YACLibComplexBlob2048);
+BENCHMARK(FollyComplexBlob2048);
+
+BENCHMARK(YACLibComplexBlob4096);
+BENCHMARK(FollyComplexBlob4096);
 
 BENCHMARK(YACLibNoContention);
 BENCHMARK(FollyNoContention);
