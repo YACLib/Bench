@@ -139,14 +139,21 @@ link_libraries(Folly::folly)
 
 # Bench ################################################################################################################
 set(BENCH_HEADERS
-  yaclib/future.hpp
-  std/future.hpp
-  folly/future.hpp
+  utils/threadpool_runner.hpp
+  utils/threadpool_suite.hpp
+  threadpool_problems/fluid_solver.hpp
+  yaclib/threadpool.hpp
+  std/threadpool.hpp
+  std/progschj_threadpool.hpp
+  folly/threadpool.hpp
   )
 set(BENCH_SOURCES
-  yaclib/future.cpp
-  std/future.cpp
-  folly/future.cpp
+  utils/threadpool_runner.cpp
+  utils/threadpool_suite.cpp
+  threadpool_problems/fluid_solver.cpp
+  yaclib/threadpool.cpp
+  std/threadpool.cpp
+  folly/threadpool.cpp
   )
 add_library(${PROJECT_NAME} STATIC
   ${BENCH_SOURCES}

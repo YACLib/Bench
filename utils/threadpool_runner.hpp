@@ -8,14 +8,20 @@ namespace bench::tp {
 
 class Runner {
  public:
-  Runner(std::function<std::future<void>(std::function<void(void)>&&)>&& callback);
+  Runner(std::function<std::future<void>(std::function<void()>&&)>&& callback);
 
   virtual std::string Name() const = 0;
+
   virtual void Prepare() = 0;
+
   virtual void Teardown() = 0;
 
+  std::function<std::future<void>(std::function<void()>&&)>& Callback();
+
+  virtual ~Runner();
+
  private:
-  std::function<std::future<void>(std::function<void(void)>&&)> _run;
+  std::function<std::future<void>(std::function<void()>&&)> _callback;
 };
 
 }  // namespace bench::tp

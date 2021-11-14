@@ -1,16 +1,23 @@
 #pragma once
-#include "std/progschj_threadpool.hpp"
-#include "utils/threadpool_runner.hpp"
+
+#include "../std/progschj_threadpool.hpp"
+#include "../utils/threadpool_runner.hpp"
+
+#include <memory>
+#include <string>
+#include <utility>
 
 namespace bench::tp::sd {
 
-class ProgschjRunner final : Runner {
+class ProgschjRunner final : public Runner {
  public:
-  [[nodiscard]] std::string Name() const override;
+  ProgschjRunner();
 
-  void Prepare() override;
+  std::string Name() const final;
 
-  void Teardown() override;
+  void Prepare() final;
+
+  void Teardown() final;
 
  private:
   std::unique_ptr<progschj::ThreadPool> _pool;

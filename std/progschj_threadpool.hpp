@@ -90,4 +90,4 @@ inline ThreadPool::~ThreadPool() {
     worker.join();
 }
 
-}  // namespace progschj
+}  // namespace bench::tp::progschj
