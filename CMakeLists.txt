@@ -141,7 +141,7 @@ link_libraries(Folly::folly)
 set(BENCH_HEADERS
   utils/threadpool_runner.hpp
   utils/threadpool_suite.hpp
-  threadpool_problems/fluid_solver.hpp
+  threadpool_problems/simple_fluid_solver.hpp
   yaclib/threadpool.hpp
   std/threadpool.hpp
   std/progschj_threadpool.hpp
@@ -150,7 +150,7 @@ set(BENCH_HEADERS
 set(BENCH_SOURCES
   utils/threadpool_runner.cpp
   utils/threadpool_suite.cpp
-  threadpool_problems/fluid_solver.cpp
+  threadpool_problems/simple_fluid_solver.cpp
   yaclib/threadpool.cpp
   std/threadpool.cpp
   folly/threadpool.cpp

@@ -3,7 +3,7 @@
  * link: https://github.com/tunabrain/incremental-fluids/tree/master/2-better-advection
  */
 
-#include "fluid_solver.hpp"
+#include "simple_fluid_solver.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -220,7 +220,7 @@ std::pair<size_t, size_t> FluidSolver::Dimensions() const {
 
 }  // namespace detail
 
-FluidSolverSuite::FluidSolverSuite()
+SimpleFluidSolverSuite::SimpleFluidSolverSuite()
     : _grid_size{2048},
       _problem_size{_grid_size * 3 * 4},
       _solver_answer(_grid_size, _grid_size, 0.1),
@@ -228,15 +228,7 @@ FluidSolverSuite::FluidSolverSuite()
       _solver(_grid_size, _grid_size, 0.1) {
 }
 
-size_t FluidSolverSuite::ProblemSize() const {
-  return _problem_size;
-}
-
-std::string FluidSolverSuite::Name() const {
-  return "Fluid Solver";
-}
-
-bool FluidSolverSuite::CheckResult() {
+bool SimpleFluidSolverSuite::CheckResult() {
   auto shape = _solver.Dimensions();
   for (size_t i = 0; i < shape.first * shape.second; i++) {
     if (std::abs(_solver.d.src[i] - _solver_answer.d.src[i]) > kEps) {
@@ -246,7 +238,7 @@ bool FluidSolverSuite::CheckResult() {
   return true;
 }
 
-void FluidSolverSuite::Prepare() {
+void SimpleFluidSolverSuite::Prepare() {
   _solver_blank = _solver_answer;
 
   for (size_t i = 0; i < 4; ++i) {
@@ -262,85 +254,6 @@ void FluidSolverSuite::Prepare() {
     _solver_answer.u.Flip();
     _solver_answer.v.Flip();
   }
-}
-
-void FluidSolverSuite::Teardown() {
-}
-
-void FluidSolverSuite::Run(std::function<std::future<void>(std::function<void(void)>&&)>&& async) {
-  _solver = _solver_blank;
-
-  for (size_t i = 0; i < 4; ++i) {
-    auto tasks = std::vector<std::future<void>>();
-    tasks.reserve(_grid_size);
-
-    _solver.BuildRhs();
-    _solver.Project(1000);
-    _solver.ApplyPressure();
-
-    for (size_t j = 0; j < _grid_size; ++j) {
-      auto d_advect = [this, j] {
-        size_t idx = 0;
-        size_t iy = j;
-        for (int ix = 0; ix < _solver.w; ix++, idx++) {
-          double x = ix + _solver.d.ox;
-          double y = iy + _solver.d.oy;
-
-          _solver.d.RungeKutta3(x, y, _solver.u, _solver.v);
-
-          _solver.d.dst[idx] = _solver.d.CERP(x, y);
-        }
-      };
-
-      tasks.emplace_back(async(d_advect));
-    }
-
-    for (size_t j = 0; j < _grid_size; ++j) {
-      auto u_advect = [this, j] {
-        size_t idx = 0;
-        size_t iy = j;
-        for (int ix = 0; ix < _solver.w; ix++, idx++) {
-          double x = ix + _solver.u.ox;
-          double y = iy + _solver.u.oy;
-
-          _solver.u.RungeKutta3(x, y, _solver.u, _solver.v);
-
-          _solver.u.dst[idx] = _solver.u.CERP(x, y);
-        }
-      };
-
-      tasks.emplace_back(async(u_advect));
-    }
-
-    for (size_t j = 0; j < _grid_size; ++j) {
-      auto v_advect = [this, j] {
-        size_t idx = 0;
-        size_t iy = j;
-        for (int ix = 0; ix < _solver.w; ix++, idx++) {
-          double x = ix + _solver.v.ox;
-          double y = iy + _solver.v.oy;
-
-          _solver.v.RungeKutta3(x, y, _solver.u, _solver.v);
-
-          _solver.v.dst[idx] = _solver.v.CERP(x, y);
-        }
-      };
-
-      tasks.emplace_back(async(v_advect));
-    }
-
-    for (auto& task : tasks) {
-      task.wait();
-    }
-
-    _solver.u.Flip();
-    _solver.d.Flip();
-    _solver.v.Flip();
-  }
-}
-
-SuitePtr MakeFluidSolverSuite() {
-  return std::make_unique<FluidSolverSuite>();
 }
 
 }  // namespace bench::tp

@@ -68,30 +68,18 @@ struct FluidSolver final {
 
 }  // namespace detail
 
-class FluidSolverSuite final : public Suite {
- public:
-  FluidSolverSuite();
+struct SimpleFluidSolverSuite final {
+  SimpleFluidSolverSuite();
 
-  size_t ProblemSize() const final;
+  bool CheckResult();
 
-  std::string Name() const final;
+  void Prepare();
 
-  bool CheckResult() final;
-
-  void Prepare() final;
-
-  void Teardown() final;
-
-  void Run(std::function<std::future<void>(std::function<void(void)>&&)>&& async) final;
-
- private:
   size_t _grid_size;
   size_t _problem_size;
   detail::FluidSolver _solver;
   detail::FluidSolver _solver_blank;
   detail::FluidSolver _solver_answer;
 };
-
-SuitePtr MakeFluidSolverSuite();
 
 }  // namespace bench::tp
