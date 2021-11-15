@@ -392,6 +392,7 @@ void YaclibOldJoiningFluid(benchmark::State& state) {
         });
 
         tasks.Add(d_advect);
+        std::move(d_advect).Detach();
       }
 
       for (size_t j = 0; j < suite._grid_size; ++j) {
@@ -407,6 +408,7 @@ void YaclibOldJoiningFluid(benchmark::State& state) {
         });
 
         tasks.Add(u_advect);
+        std::move(u_advect).Detach();
       }
 
       for (size_t j = 0; j < suite._grid_size; ++j) {
@@ -422,6 +424,7 @@ void YaclibOldJoiningFluid(benchmark::State& state) {
         });
 
         tasks.Add(v_advect);
+        std::move(v_advect).Detach();
       }
 
       state.ResumeTiming();
@@ -436,8 +439,6 @@ void YaclibOldJoiningFluid(benchmark::State& state) {
     }
     state.ResumeTiming();
   }
-  pool->HardStop();
-  pool->Wait();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -445,7 +446,7 @@ void YaclibOldJoiningFluid(benchmark::State& state) {
 }  // namespace
 
 // BENCHMARK(ProgschjForkingFluid);
-BENCHMARK(ProgschjJoiningFluid);
+//BENCHMARK(ProgschjJoiningFluid);
 
 // BENCHMARK(YaclibOldForkingFluid);
 BENCHMARK(YaclibOldJoiningFluid);
