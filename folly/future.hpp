@@ -121,8 +121,6 @@ void NoContention(benchmark::State& state) {
   state.ResumeTiming();
 
   producer.join();
-
-  state.PauseTiming();
 }
 
 void Contention(benchmark::State& state) {
@@ -158,28 +156,26 @@ void Contention(benchmark::State& state) {
 
   consumer.join();
   producer.join();
-
-  state.PauseTiming();
 }
-inline folly::InlineExecutor exe;
 
 template <typename T>
 folly::Future<T> FGen() {
   folly::Promise<T> p;
-  auto f = p.getFuture()
-               .thenValue([](T&& t) {
-                 return std::move(t);
-               })
-               .thenValue([](T&& t) {
-                 return folly::makeFuture(std::move(t));
-               })
-               .thenValue([](T&& t) {
-                 return std::move(t);
-               })
-               .thenValue([](T&& t) {
-                 return folly::makeFuture(std::move(t));
-               });
-  p.setValue(T());
+  auto f = p.getFuture();
+  f = std::move(f)
+          .thenValueInline([](T&& t) {
+            return std::move(t);
+          })
+          .thenValueInline([](T&& t) {
+            return folly::makeFuture(std::move(t));
+          })
+          .thenValueInline([](T&& t) {
+            return std::move(t);
+          })
+          .thenValueInline([](T&& t) {
+            return folly::makeFuture(std::move(t));
+          });
+  p.setValue(T{});
   return f;
 }
 
@@ -195,13 +191,13 @@ std::vector<folly::Future<T>> FsGen() {
 
 template <typename T>
 void ComplexBenchmark() {
-  folly::collectAll(FsGen<T>()).value();
-  folly::collectAny(FsGen<T>()).value();
-  folly::futures::mapValue(FsGen<T>(), [](const T& t) {
-    return t;
+  (void)folly::collectAll(FsGen<T>()).value();
+  (void)folly::collectAny(FsGen<T>()).value();
+  folly::futures::mapValue(FsGen<T>(), [](T&& t) {
+    return std::move(t);
   });
-  folly::futures::mapValue(FsGen<T>(), [](const T& t) {
-    return folly::makeFuture(T(t));
+  folly::futures::mapValue(FsGen<T>(), [](T&& t) {
+    return folly::makeFuture(T{std::move(t)});
   });
 }
 

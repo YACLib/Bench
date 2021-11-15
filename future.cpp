@@ -199,9 +199,9 @@ void FollyContention(benchmark::State& state) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void YACLibComplexUnit(benchmark::State& state) {
+void YACLibComplexVoid(benchmark::State& state) {
   for (auto _ : state) {
-    yb::ComplexBenchmark<folly::Unit>();
+    yb::ComplexBenchmark<void>();
   }
 }
 
@@ -341,72 +341,72 @@ void FollyComplexBlob4096(benchmark::State& state) {
 
 }  // namespace
 
-BENCHMARK(STLConstantFuture);
-BENCHMARK(YACLibConstantFuture);
-BENCHMARK(FollyConstantFuture);
+BENCHMARK(STLConstantFuture)->UseRealTime();
+BENCHMARK(YACLibConstantFuture)->UseRealTime();
+BENCHMARK(FollyConstantFuture)->UseRealTime();
 
-BENCHMARK(STLPromiseAndFuture);
-BENCHMARK(YACLibPromiseAndFuture);
-BENCHMARK(FollyPromiseAndFuture);
+BENCHMARK(STLPromiseAndFuture)->UseRealTime();
+BENCHMARK(YACLibPromiseAndFuture)->UseRealTime();
+BENCHMARK(FollyPromiseAndFuture)->UseRealTime();
 
-BENCHMARK(YACLibOneThen);
-BENCHMARK(FollyOneThen);
+BENCHMARK(YACLibOneThen)->UseRealTime();
+BENCHMARK(FollyOneThen)->UseRealTime();
 
-BENCHMARK(YACLibTwoThen);
-BENCHMARK(FollyTwoThen);
+BENCHMARK(YACLibTwoThen)->UseRealTime();
+BENCHMARK(FollyTwoThen)->UseRealTime();
 
-BENCHMARK(YACLibFourThen);
-BENCHMARK(FollyFourThen);
+BENCHMARK(YACLibFourThen)->UseRealTime();
+BENCHMARK(FollyFourThen)->UseRealTime();
 
-BENCHMARK(YACLibHundredThen);
-BENCHMARK(FollyHundredThen);
+BENCHMARK(YACLibHundredThen)->UseRealTime();
+BENCHMARK(FollyHundredThen)->UseRealTime();
 
-BENCHMARK(YACLibFourThenOnThread);
-BENCHMARK(FollyFourThenOnThread);
+BENCHMARK(YACLibFourThenOnThread)->UseRealTime();
+BENCHMARK(FollyFourThenOnThread)->UseRealTime();
 
-BENCHMARK(YACLibFourThenOnThreadInline);
-BENCHMARK(FollyFourThenOnThreadInline);
+BENCHMARK(YACLibFourThenOnThreadInline)->UseRealTime();
+BENCHMARK(FollyFourThenOnThreadInline)->UseRealTime();
 
-BENCHMARK(YACLibHundredThenOnThread);
-BENCHMARK(FollyHundredThenOnThread);
+BENCHMARK(YACLibHundredThenOnThread)->UseRealTime();
+BENCHMARK(FollyHundredThenOnThread)->UseRealTime();
 
-BENCHMARK(YACLibHundredThenOnThreadInline);
-BENCHMARK(FollyHundredThenOnThreadInline);
+BENCHMARK(YACLibHundredThenOnThreadInline)->UseRealTime();
+BENCHMARK(FollyHundredThenOnThreadInline)->UseRealTime();
 
-BENCHMARK(YACLibComplexUnit);
-BENCHMARK(FollyComplexUnit);
+BENCHMARK(YACLibComplexVoid)->UseRealTime();
+BENCHMARK(FollyComplexUnit)->UseRealTime();
 
-BENCHMARK(YACLibComplexBlob4);
-BENCHMARK(FollyComplexBlob4);
+BENCHMARK(YACLibComplexBlob4)->UseRealTime();
+BENCHMARK(FollyComplexBlob4)->UseRealTime();
 
-BENCHMARK(YACLibComplexBlob8);
-BENCHMARK(FollyComplexBlob8);
+BENCHMARK(YACLibComplexBlob8)->UseRealTime();
+BENCHMARK(FollyComplexBlob8)->UseRealTime();
 
-BENCHMARK(YACLibComplexBlob64);
-BENCHMARK(FollyComplexBlob64);
+BENCHMARK(YACLibComplexBlob64)->UseRealTime();
+BENCHMARK(FollyComplexBlob64)->UseRealTime();
 
-BENCHMARK(YACLibComplexBlob128);
-BENCHMARK(FollyComplexBlob128);
+BENCHMARK(YACLibComplexBlob128)->UseRealTime();
+BENCHMARK(FollyComplexBlob128)->UseRealTime();
 
-BENCHMARK(YACLibComplexBlob256);
-BENCHMARK(FollyComplexBlob256);
+BENCHMARK(YACLibComplexBlob256)->UseRealTime();
+BENCHMARK(FollyComplexBlob256)->UseRealTime();
 
-BENCHMARK(YACLibComplexBlob512);
-BENCHMARK(FollyComplexBlob512);
+BENCHMARK(YACLibComplexBlob512)->UseRealTime();
+BENCHMARK(FollyComplexBlob512)->UseRealTime();
 
-BENCHMARK(YACLibComplexBlob1024);
-BENCHMARK(FollyComplexBlob1024);
+BENCHMARK(YACLibComplexBlob1024)->UseRealTime();
+BENCHMARK(FollyComplexBlob1024)->UseRealTime();
 
-BENCHMARK(YACLibComplexBlob2048);
-BENCHMARK(FollyComplexBlob2048);
+BENCHMARK(YACLibComplexBlob2048)->UseRealTime();
+BENCHMARK(FollyComplexBlob2048)->UseRealTime();
 
-BENCHMARK(YACLibComplexBlob4096);
-BENCHMARK(FollyComplexBlob4096);
+BENCHMARK(YACLibComplexBlob4096)->UseRealTime();
+BENCHMARK(FollyComplexBlob4096)->UseRealTime();
 
-BENCHMARK(YACLibNoContention);
-BENCHMARK(FollyNoContention);
+BENCHMARK(YACLibNoContention)->UseRealTime();
+BENCHMARK(FollyNoContention)->UseRealTime();
 
-BENCHMARK(YACLibContention);
-BENCHMARK(FollyContention);
+BENCHMARK(YACLibContention)->UseRealTime();
+BENCHMARK(FollyContention)->UseRealTime();
 
 BENCHMARK_MAIN();

@@ -24,11 +24,7 @@ set(CMAKE_C_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-if (ENABLE_LTO)
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
-else ()
-  set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
-endif ()
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 if (MSVC)
   list(APPEND COMPILE_OPTIONS /W3)
@@ -123,10 +119,13 @@ macro(add_files)
   set(BENCH_SOURCES ${BENCH_SOURCES} PARENT_SCOPE)
 endmacro()
 
+find_package(Threads REQUIRED)
+link_libraries(Threads::Threads)
+
 # YACLib ###############################################################################################################
 FetchContent_Declare(yaclib
   GIT_REPOSITORY https://github.com/YACLib/YACLib.git
-  GIT_TAG mbkkt_small_fixes
+  GIT_TAG main
   )
 FetchContent_MakeAvailable(yaclib)
 link_libraries(yaclib)

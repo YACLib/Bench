@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../cmake-build-release/_deps/yaclib-src/src/util/intrusive_list.hpp"
+#include "../cmake-build-release-gcc/_deps/yaclib-src/src/util/intrusive_list.hpp"
 #include "yaclib/algo/when_all.hpp"
 #include "yaclib/algo/when_any.hpp"
 
@@ -61,7 +61,7 @@ class TestExecutor final : public yaclib::IExecutor {
     return Type::Custom;
   }
 
-  bool Execute(yaclib::ITask& task) final {
+  bool Execute(yaclib::ITask& task) noexcept final {
     task.IncRef();
     {
       std::lock_guard guard{_m};
@@ -131,7 +131,6 @@ void NoContention(benchmark::State& state) {
 
   state.ResumeTiming();
   producer.join();
-  state.PauseTiming();
 }
 
 void Contention(benchmark::State& state) {
@@ -167,28 +166,42 @@ void Contention(benchmark::State& state) {
 
   consumer.join();
   producer.join();
-
-  state.PauseTiming();
 }
 
 template <typename T>
 yaclib::Future<T> FGen() {
   yaclib::Promise<T> p;
-  auto f = p.MakeFuture()
-               .Then([](T&& t) {
-                 return std::move(t);
-               })
-               .Then([](T&& t) {
-                 return yaclib::MakeFuture(std::move(t));
-               })
-               .Then([](T&& t) {
-                 return std::move(t);
-               })
-               .Then([](T&& t) {
-                 return yaclib::MakeFuture(std::move(t));
-               });
-  std::move(p).Set(T());
-  return f;
+  auto f = p.MakeFuture();
+  if constexpr (std::is_void_v<T>) {
+    f = std::move(f)
+            .Then([] {
+            })
+            .Then([](yaclib::util::Result<T>&&) {
+              return yaclib::MakeFuture();
+            })
+            .Then([] {
+            })
+            .Then([](yaclib::util::Result<T>&&) {
+              return yaclib::MakeFuture();
+            });
+    std::move(p).Set();
+  } else {
+    f = std::move(f)
+            .ThenInline([](T&& t) {
+              return std::move(t);
+            })
+            .ThenInline([](T&& t) {
+              return yaclib::MakeFuture(std::move(t));
+            })
+            .ThenInline([](T&& t) {
+              return std::move(t);
+            })
+            .ThenInline([](T&& t) {
+              return yaclib::MakeFuture(std::move(t));
+            });
+    std::move(p).Set(T{});
+  }
+  return std::move(f);
 }
 
 template <typename T>
@@ -205,26 +218,37 @@ template <typename T>
 void ComplexBenchmark() {
   {
     auto fs = FsGen<T>();
-    yaclib::WhenAll(fs.begin(), fs.end()).Get().Ok();
+    (void)yaclib::WhenAll(fs.begin(), fs.end()).Get().Ok();
   }
   {
     auto fs = FsGen<T>();
-    yaclib::WhenAny(fs.begin(), fs.end()).Get().Ok();
+    (void)yaclib::WhenAny(fs.begin(), fs.end()).Get().Ok();
   }
   {
     auto fs = FsGen<T>();
     for (auto& f : fs) {
-      f = std::move(f).Then([](const T& t) {
-        return t;
-      });
+      if constexpr (std::is_void_v<T>) {
+        std::move(f).Then([] {
+        });
+      } else {
+        std::move(f).Then([](T&& t) {
+          return std::move(t);
+        });
+      }
     }
   }
   {
     auto fs = FsGen<T>();
     for (auto& f : fs) {
-      f = std::move(f).Then([](const T& t) {
-        return yaclib::MakeFuture(T(t));
-      });
+      if constexpr (std::is_void_v<T>) {
+        std::move(f).SubscribeInline([](yaclib::util::Result<T>&&) {
+          return yaclib::MakeFuture();
+        });
+      } else {
+        std::move(f).SubscribeInline([](T&& t) {
+          return yaclib::MakeFuture(std::move(t));
+        });
+      }
     }
   }
 }

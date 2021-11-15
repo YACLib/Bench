@@ -56,45 +56,76 @@ Load Average: 2.24, 1.56, 0.76
 </summary>
 
 ```bash
---------------------------------------------------------------------------
-Benchmark                                Time             CPU   Iterations
---------------------------------------------------------------------------
-STLConstantFuture                      511 ns          510 ns      1312484
-YACLibConstantFuture                  32.0 ns         31.9 ns     22096915
-FollyConstantFuture                   28.3 ns         28.3 ns     25076414
-STLPromiseAndFuture                    528 ns          528 ns      1309909
-YACLibPromiseAndFuture                62.2 ns         62.1 ns     10973978
-FollyPromiseAndFuture                 64.9 ns         64.9 ns     10741754
-YACLibOneThen                          147 ns          147 ns      4785874
-FollyOneThen                           172 ns          172 ns      4108779
-YACLibTwoThen                          236 ns          236 ns      2990642
-FollyTwoThen                           296 ns          296 ns      2349923
-YACLibFourThen                         415 ns          415 ns      1693791
-FollyFourThen                          558 ns          558 ns      1244561
-YACLibHundredThen                     8725 ns         8709 ns        79019
-FollyHundredThen                     12542 ns        12503 ns        56253
-YACLibFourThenOnThread               27789 ns        18837 ns        37001
-FollyFourThenOnThread                30961 ns        20014 ns        34970
-YACLibFourThenOnThreadInline         27312 ns        18980 ns        37703
-FollyFourThenOnThreadInline          34727 ns        22842 ns        34598
-YACLibHundredThenOnThread            53120 ns        36885 ns        18914
-FollyHundredThenOnThread             75488 ns        52666 ns        13471
-YACLibHundredThenOnThreadInline      43156 ns        33789 ns        20653
-FollyHundredThenOnThreadInline       54391 ns        34591 ns        20284
-YACLibComplexUnit                    39182 ns        39157 ns        17977
-FollyComplexUnit                     49353 ns        49318 ns        14191
-YACLibComplexBlob4                   38641 ns        38621 ns        18098
-FollyComplexBlob4                    48809 ns        48778 ns        14379
-YACLibComplexBlob8                   38387 ns        38269 ns        17942
-FollyComplexBlob8                    48119 ns        48092 ns        14557
-YACLibComplexBlob64                  40176 ns        40153 ns        17654
-FollyComplexBlob64                   42885 ns        42851 ns        17041
-YACLibComplexBlob128                 41073 ns        41014 ns        17024
-FollyComplexBlob128                  42016 ns        41978 ns        16553
-YACLibNoContention                 1623865 ns       684637 ns         1027
-FollyNoContention                  2917857 ns       899710 ns          775
-YACLibContention                   3337525 ns       661014 ns         1107
-FollyContention                    5953766 ns       956817 ns          732
+------------------------------------------------------------------------------------
+Benchmark                                          Time             CPU   Iterations
+------------------------------------------------------------------------------------
+STLConstantFuture/real_time                      568 ns          568 ns      1151694
+YACLibConstantFuture/real_time                  32.3 ns         32.3 ns     20237516
+FollyConstantFuture/real_time                   23.7 ns         23.7 ns     23097941
+
+STLPromiseAndFuture/real_time                    474 ns          473 ns      1512769
+YACLibPromiseAndFuture/real_time                64.3 ns         63.5 ns     11138296
+FollyPromiseAndFuture/real_time                 60.1 ns         59.7 ns     11694852
+
+YACLibOneThen/real_time                          127 ns          125 ns      5450958
+FollyOneThen/real_time                           165 ns          163 ns      4249089
+
+YACLibTwoThen/real_time                          206 ns          206 ns      3436010
+FollyTwoThen/real_time                           278 ns          276 ns      2508035
+
+YACLibFourThen/real_time                         366 ns          362 ns      1922748
+FollyFourThen/real_time                          511 ns          510 ns      1362878
+
+YACLibHundredThen/real_time                     7894 ns         7882 ns        89768
+FollyHundredThen/real_time                     11413 ns        11309 ns        61696
+
+YACLibFourThenOnThread/real_time               24786 ns        17157 ns        28718
+FollyFourThenOnThread/real_time                26772 ns        17972 ns        24657
+
+YACLibFourThenOnThreadInline/real_time         24045 ns        17080 ns        29164
+FollyFourThenOnThreadInline/real_time          26799 ns        18188 ns        25839
+
+YACLibHundredThenOnThread/real_time            39741 ns        28166 ns        17512
+FollyHundredThenOnThread/real_time             59789 ns        44683 ns        12145
+
+YACLibHundredThenOnThreadInline/real_time      31021 ns        25090 ns        23266
+FollyHundredThenOnThreadInline/real_time       45353 ns        34057 ns        15884
+
+YACLibComplexVoid/real_time                    28255 ns        28229 ns        24270
+FollyComplexUnit/real_time                     37927 ns        37901 ns        18388
+
+YACLibComplexBlob4/real_time                   26720 ns        26697 ns        26289
+FollyComplexBlob4/real_time                    39877 ns        39859 ns        17977
+
+YACLibComplexBlob8/real_time                   26650 ns        26639 ns        26136
+FollyComplexBlob8/real_time                    37337 ns        37306 ns        18879
+
+YACLibComplexBlob64/real_time                  28532 ns        28518 ns        24494
+FollyComplexBlob64/real_time                   37713 ns        37698 ns        18631
+
+YACLibComplexBlob128/real_time                 29172 ns        29160 ns        24009
+FollyComplexBlob128/real_time                  38326 ns        38308 ns        18157
+
+YACLibComplexBlob256/real_time                 31499 ns        31477 ns        22199
+FollyComplexBlob256/real_time                  40587 ns        40560 ns        17373
+
+YACLibComplexBlob512/real_time                 39858 ns        39817 ns        17565
+FollyComplexBlob512/real_time                  46185 ns        46152 ns        14762
+
+YACLibComplexBlob1024/real_time                60630 ns        60601 ns        11523
+FollyComplexBlob1024/real_time                 60297 ns        60280 ns        11617
+
+YACLibComplexBlob2048/real_time                76371 ns        76344 ns         9073
+FollyComplexBlob2048/real_time                 70066 ns        70030 ns        10008
+
+YACLibComplexBlob4096/real_time               112153 ns       112119 ns         6227
+FollyComplexBlob4096/real_time                106537 ns       106467 ns         6550
+
+YACLibNoContention/real_time                 1033378 ns       636226 ns          676
+FollyNoContention/real_time                  1730145 ns       847328 ns          396
+
+YACLibContention/real_time                   1876405 ns       595295 ns          377
+FollyContention/real_time                    3240638 ns       875590 ns          215
 ```
 
 </details>
