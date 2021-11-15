@@ -3,6 +3,7 @@
 #include "progschj_threadpool.hpp"
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -24,6 +25,10 @@ ProgschjRunner::ProgschjRunner()
     : Runner([this](std::function<void()>&& f) {
         return _pool->enqueue(std::move(f));
       }) {
+}
+
+RunnerPtr MakeProgschjRunner() {
+  return std::make_unique<ProgschjRunner>();
 }
 
 }  // namespace bench::tp::sd

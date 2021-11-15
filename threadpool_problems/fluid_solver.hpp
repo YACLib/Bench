@@ -92,4 +92,6 @@ class FluidSolverSuite final : public Suite {
   detail::FluidSolver _solver_answer;
 };
 
+SuitePtr MakeFluidSolverSuite();
+
 }  // namespace bench::tp

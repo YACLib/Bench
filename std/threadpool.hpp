@@ -23,4 +23,6 @@ class ProgschjRunner final : public Runner {
   std::unique_ptr<progschj::ThreadPool> _pool;
 };
 
+RunnerPtr MakeProgschjRunner();
+
 }  // namespace bench::tp::sd

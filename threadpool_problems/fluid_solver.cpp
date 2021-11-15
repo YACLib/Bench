@@ -330,13 +330,17 @@ void FluidSolverSuite::Run(std::function<std::future<void>(std::function<void(vo
     }
 
     for (auto& task : tasks) {
-      task.get();
+      task.wait();
     }
 
     _solver.u.Flip();
     _solver.d.Flip();
     _solver.v.Flip();
   }
+}
+
+SuitePtr MakeFluidSolverSuite() {
+  return std::make_unique<FluidSolverSuite>();
 }
 
 }  // namespace bench::tp

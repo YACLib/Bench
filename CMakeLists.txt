@@ -161,6 +161,7 @@ add_library(${PROJECT_NAME} STATIC
 target_sources(${PROJECT_NAME}
   PRIVATE ${BENCH_HEADERS}
   )
+link_libraries(${PROJECT_NAME})
 
 #add_bench(future)
 add_bench(lock_free_threadpool)

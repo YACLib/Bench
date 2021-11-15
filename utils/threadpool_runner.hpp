@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <future>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -23,5 +24,7 @@ class Runner {
  private:
   std::function<std::future<void>(std::function<void()>&&)> _callback;
 };
+
+using RunnerPtr = std::unique_ptr<Runner>;
 
 }  // namespace bench::tp

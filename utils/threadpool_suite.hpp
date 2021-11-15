@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <future>
+#include <memory>
 #include <string>
 
 namespace bench::tp {
@@ -21,5 +22,7 @@ class Suite {
 
   virtual ~Suite();
 };
+
+using SuitePtr = std::unique_ptr<Suite>;
 
 }  // namespace bench::tp

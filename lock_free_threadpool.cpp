@@ -13,35 +13,82 @@
 namespace {
 
 using namespace bench::tp;
+using namespace std::placeholders;
 
-void RunBenchmark(benchmark::State& state, Runner* runner, Suite* suite) {
+void ForkingBenchmark(benchmark::State& state, Runner* runner, Suite* suite) {
+  state.PauseTiming();
+
   runner->Prepare();
-
   suite->Prepare();
+
   auto callback = runner->Callback();
-  auto async_call = [&callback](std::function<void()>&& task) {
+  auto async_call = [&callback, &state](std::function<void()>&& task) {
+    state.ResumeTiming();
     auto future = callback(std::move(task));
+    state.PauseTiming();
+
     return future;
   };
   suite->Run(std::move(async_call));
-  suite->Teardown();
 
+  suite->Teardown();
+  runner->Teardown();
+}
+
+void JoiningBenchmark(benchmark::State& state, Runner* runner, Suite* suite) {
+  state.PauseTiming();
+
+  runner->Prepare();
+  suite->Prepare();
+
+  auto callback = runner->Callback();
+  auto async_call = [&callback, &state](std::function<void()>&& task) {
+    state.PauseTiming();
+    auto future = callback(std::move(task));
+    state.ResumeTiming();
+
+    return future;
+  };
+
+  state.ResumeTiming();
+  suite->Run(std::move(async_call));
+  state.PauseTiming();
+
+  suite->Teardown();
   runner->Teardown();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void DoesItWork(benchmark::State& state) {
+void ProgschjForkingFluid(benchmark::State& state) {
+  auto runner = sd::MakeProgschjRunner();
+  auto suite = MakeFluidSolverSuite();
   for (auto _ : state) {
-    // Do nothing
+    ForkingBenchmark(state, runner.get(), suite.get());
   }
 }
 
-void ProgschjFluid(benchmark::State& state) {
-  auto runner = sd::ProgschjRunner();
-  auto suite = FluidSolverSuite();
+void ProgschjJoiningFluid(benchmark::State& state) {
+  auto runner = sd::MakeProgschjRunner();
+  auto suite = MakeFluidSolverSuite();
   for (auto _ : state) {
-    RunBenchmark(state, &runner, &suite);
+    JoiningBenchmark(state, runner.get(), suite.get());
+  }
+}
+
+void YaclibOldForkingFluid(benchmark::State& state) {
+  auto runner = sd::MakeProgschjRunner();
+  auto suite = MakeFluidSolverSuite();
+  for (auto _ : state) {
+    ForkingBenchmark(state, runner.get(), suite.get());
+  }
+}
+
+void YaclibOldJoiningFluid(benchmark::State& state) {
+  auto runner = yb::MakeYaclibOldRunner();
+  auto suite = MakeFluidSolverSuite();
+  for (auto _ : state) {
+    JoiningBenchmark(state, runner.get(), suite.get());
   }
 }
 
@@ -49,7 +96,10 @@ void ProgschjFluid(benchmark::State& state) {
 
 }  // namespace
 
-BENCHMARK(DoesItWork);
-BENCHMARK(ProgschjFluid);
+BENCHMARK(ProgschjForkingFluid);
+BENCHMARK(ProgschjJoiningFluid);
+
+BENCHMARK(YaclibOldForkingFluid);
+BENCHMARK(YaclibOldJoiningFluid);
 
 BENCHMARK_MAIN();
