@@ -1,4 +1,4 @@
-#pragma once
+#include "bind/folly/future.hpp"
 
 #include <vector>
 
@@ -10,7 +10,17 @@
 #include <folly/synchronization/Baton.h>
 #include <folly/synchronization/NativeSemaphore.h>
 
-namespace bench::fy {
+namespace bench {
+namespace {
+
+template <typename T>
+T Incr(folly::Try<T>&& t) {
+  return t.value() + 1;
+}
+
+}  // namespace
+
+namespace detail {
 
 class TestExecutor final : public folly::Executor {
  public:
@@ -69,12 +79,9 @@ class TestExecutor final : public folly::Executor {
   std::vector<std::thread> _workers;
 };
 
-template <typename T>
-T Incr(folly::Try<T>&& t) {
-  return t.value() + 1;
-}
+}  // namespace detail
 
-folly::Future<int> Thens(folly::Future<int> f, size_t n, bool run_inline = false) {
+folly::Future<int> Folly::Thens(folly::Future<int> f, size_t n, bool run_inline) {
   for (size_t i = 0; i < n; i++) {
     if (run_inline) {
       f = std::move(f).thenInline(Incr<int>);
@@ -85,14 +92,14 @@ folly::Future<int> Thens(folly::Future<int> f, size_t n, bool run_inline = false
   return f;
 }
 
-void SomeThens(size_t n) {
+void Folly::SomeThens(size_t n) {
   auto f = folly::makeFuture<int>(42);
   f = Thens(std::move(f), n);
   f.wait();
 }
 
-void SomeThensOnThread(size_t n, bool run_inline = false) {
-  auto executor = std::make_unique<TestExecutor>(1);
+void Folly::SomeThensOnThread(size_t n, bool run_inline) {
+  auto executor = std::make_unique<detail::TestExecutor>(1);
   auto f = folly::makeFuture<int>(42).via(executor.get());
   f = Thens(std::move(f), n / 2, run_inline);
   f = Thens(std::move(f), 1, false);
@@ -100,7 +107,7 @@ void SomeThensOnThread(size_t n, bool run_inline = false) {
   f.wait();
 }
 
-void NoContention(benchmark::State& state) {
+void Folly::NoContention(benchmark::State& state) {
   state.PauseTiming();
 
   std::vector<folly::Promise<int>> promises(10000);
@@ -121,11 +128,9 @@ void NoContention(benchmark::State& state) {
   state.ResumeTiming();
 
   producer.join();
-
-  state.PauseTiming();
 }
 
-void Contention(benchmark::State& state) {
+void Folly::Contention(benchmark::State& state) {
   state.PauseTiming();
 
   std::vector<folly::Promise<int>> promises(10000);
@@ -158,56 +163,12 @@ void Contention(benchmark::State& state) {
 
   consumer.join();
   producer.join();
-
-  state.PauseTiming();
 }
-inline folly::InlineExecutor exe;
-
-template <typename T>
-folly::Future<T> FGen() {
-  folly::Promise<T> p;
-  auto f = p.getFuture()
-               .thenValue([](T&& t) {
-                 return std::move(t);
-               })
-               .thenValue([](T&& t) {
-                 return folly::makeFuture(std::move(t));
-               })
-               .thenValue([](T&& t) {
-                 return std::move(t);
-               })
-               .thenValue([](T&& t) {
-                 return folly::makeFuture(std::move(t));
-               });
-  p.setValue(T());
-  return f;
+void Folly::PromiseAndFuture() {
+  folly::Promise<int> p;
+  folly::Future<int> f = p.getFuture();
+  std::move(p).setValue(42);
+  std::move(f).value();
 }
 
-template <typename T>
-std::vector<folly::Future<T>> FsGen() {
-  std::vector<folly::Future<T>> fs;
-  fs.reserve(10);
-  for (auto i = 0; i < 10; i++) {
-    fs.push_back(FGen<T>());
-  }
-  return fs;
-}
-
-template <typename T>
-void ComplexBenchmark() {
-  folly::collectAll(FsGen<T>()).value();
-  folly::collectAny(FsGen<T>()).value();
-  folly::futures::mapValue(FsGen<T>(), [](const T& t) {
-    return t;
-  });
-  folly::futures::mapValue(FsGen<T>(), [](const T& t) {
-    return folly::makeFuture(T(t));
-  });
-}
-
-template <size_t S>
-struct Blob {
-  char buf[S];
-};
-
-}  // namespace bench::fy
+}  // namespace bench
