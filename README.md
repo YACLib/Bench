@@ -1,5 +1,43 @@
 # Benchmark YACLib
 
+## Results
+
+### Future
+
+* [i7-11850H](future/result/i7-11850H/README.md)
+
+## How to add your own results
+
+**The most important** benchmarks now only work on Linux
+
+Need to install:
+```
+cmake
+ninja
+```
+
+Also you can install:
+```
+gcc
+g++
+clang
+```
+
+And if you want enable Folly or BoostThread or libc++:
+```
+folly
+boost_thread
+libc++
+```
+
+If you install all these dependencies, you can run:
+```bash
+./script/build.sh
+./script/run.sh --proc="Your proc name without space"
+```
+
+Then commit and make PR, thanks!
+
 <details>
 <summary>
 If you have this warning:
@@ -23,8 +61,3 @@ sudo cpupower frequency-set --governor powersave
 
 </details>
 
-## Benchmark results
-
-### Future
-
-* [i7-11850H](future/result/i7-11850H/README.md)
