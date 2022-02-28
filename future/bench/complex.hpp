@@ -1,10 +1,12 @@
+#include <cstddef>
+
 #include <benchmark/benchmark.h>
 
 namespace bench {
 
-template <size_t S>
+template <std::size_t Size>
 struct Blob {
-  char buf[S];
+  std::byte buffer[Size];
 };
 
 template <typename Library, size_t N>

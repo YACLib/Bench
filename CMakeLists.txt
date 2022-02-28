@@ -25,9 +25,31 @@ set(CMAKE_VISIBILITY_INLINES_HIDDEN ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-
 message("COMPILE_OPTIONS: ${COMPILE_OPTIONS}")
 message("LINK_OPTIONS   : ${LINK_OPTIONS}")
-add_definitions(${DEFINITIONS})
+if (LIBCXX)
+  add_compile_options(-stdlib=libc++)
+  add_link_options(-stdlib=libc++ -lc++abi)
+endif ()
+
+set(UTIL_HEADERS
+  ${BENCH_SOURCE_DIR}/util/bench.hpp
+  ${BENCH_SOURCE_DIR}/util/semaphore.hpp
+  )
+
+find_package(benchmark QUIET)
+
+if (NOT BENCHMARK_FOUND)
+  include(FetchContent)
+  if (NOT BENCHMARK_FOUND)
+    set(BENCHMARK_ENABLE_TESTING NO)
+    FetchContent_Declare(
+      benchmark
+      GIT_REPOSITORY https://github.com/google/benchmark.git
+      GIT_TAG main
+    )
+    FetchContent_MakeAvailable(benchmark)
+  endif ()
+endif ()
 
 add_subdirectory(future)
