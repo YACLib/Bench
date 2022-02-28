@@ -1,0 +1,60 @@
+name: Sanitizer
+
+on:
+  push:
+    branches: [ master, main ]
+    paths-ignore: [ '**/result/**', '**.md' ]
+  pull_request:
+    branches: [ master, main ]
+    paths-ignore: [ '**/result/**', '**.md' ]
+
+jobs:
+  main:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04 ]
+        build_type: [ Debug, RelWithDebInfo ]
+        compiler: [ clang_libcxx, clang_libstdcxx, gcc_libstdcxx ]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Update deps on Linux
+        run: |
+          sudo apt-get update
+          sudo wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+          sudo add-apt-repository "deb http://apt.llvm.org/focal/     llvm-toolchain-focal-14   main"
+          sudo apt-get update
+          sudo apt-get install ninja-build gcc-11 g++-11 libstdc++-11-dev clang-14 lld-14 libc++-14-dev libc++abi-14-dev libboost-thread-dev
+          sudo ln -sf /usr/bin/lld-14 /usr/local/bin/ld
+
+      - name: Configure CMake Posix
+        run: |
+          build_type=${{ matrix.build_type }}
+          dir="build_${{ matrix.compiler }}"
+          if [[ "${{ matrix.compiler }}" == "gcc_libstdcxx" ]]; then
+            c_compiler=gcc-11; cxx_compiler=g++-11
+          else
+            c_compiler=clang-14; cxx_compiler=clang++-14
+          fi
+          if [[ "${{ matrix.compiler }}" == "clang_libcxx" ]]; then
+            options="-DLIBCXX=ON -DSTD=ON -DYACLIB=ON"            
+          else
+            options="            -DSTD=ON -DYACLIB=ON -DBOOST_THREAD=ON"
+          fi
+          cmake -S . -B $dir                                   \
+            -DCMAKE_BUILD_TYPE=$build_type                     \
+            -DCMAKE_C_COMPILER=${c_compiler}                   \
+            -DCMAKE_CXX_COMPILER=${cxx_compiler}               \
+            -G"Ninja"                                          \
+            $options
+
+      - name: Build
+        run: |
+          for dir in build*/; do
+            echo $dir
+            cmake --build $dir --config ${{ matrix.build_type }}
+            echo
+          done

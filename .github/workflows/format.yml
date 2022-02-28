@@ -2,11 +2,11 @@ name: Format
 
 on:
   push:
-    branches: [ main ]
-    paths-ignore: [ '**.md' ]
+    branches: [ master, main ]
+    paths-ignore: [ '**/result/**', '**.md' ]
   pull_request:
-    branches: [ main ]
-    paths-ignore: [ '**.md' ]
+    branches: [ master, main ]
+    paths-ignore: [ '**/result/**', '**.md' ]
 
 jobs:
   # TODO(MBkkt) clang-format 14, now this extension doesn't work, because clang-14 not really released yet
