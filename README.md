@@ -4,7 +4,7 @@
 
 ### Future
 
-* [i7-11850H](future/result/i7-11850H/README.md)
+* [i7-11850H](future/result/i7-11850H)
 
 ## How to add your own results
 
