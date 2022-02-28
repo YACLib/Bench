@@ -1,35 +1,31 @@
-#include <bind/folly/future.hpp>
+#include <bind/boost_thread/future.hpp>
 #include <semaphore.hpp>
 
 #include <future>
-#include <vector>
 
 #include <benchmark/benchmark.h>
-#include <folly/executors/InlineExecutor.h>
-#include <folly/futures/Future.h>
-#include <folly/futures/Promise.h>
 
 namespace bench {
 namespace {
 
 template <typename T>
-T Incr(folly::Try<T>&& t) {
-  return t.value() + 1;
+T Incr(boost::future<T>&& f) {
+  return std::move(f).get() + 1;
 }
 
-folly::Future<int> Thens(folly::Future<int> f, std::size_t n, bool is_executor) {
+boost::future<int> Thens(BoostThread::Executor* executor, boost::future<int> f, std::size_t n, bool is_executor) {
   for (std::size_t i = 0; i != n; ++i) {
     if (is_executor) {
-      f = std::move(f).then(Incr<int>);
+      f = std::move(f).then(*executor, Incr<int>);
     } else {
-      f = std::move(f).thenInline(Incr<int>);
+      f = std::move(f).then(detail::bd::sInline, Incr<int>);
     }
   }
   return f;
 }
 
 }  // namespace
-namespace detail::fy {
+namespace detail::bd {
 
 TestExecutor::TestExecutor(std::size_t num_threads) {
   num_threads = std::max(std::size_t{1}, num_threads);
@@ -76,54 +72,54 @@ TestExecutor::~TestExecutor() {
   Join();
 }
 
-void TestExecutor::add(folly::Func f) {
+void TestExecutor::submit(work&& closure) {
   {
     std::lock_guard lock{_m};
-    _tasks.push(std::move(f));
+    _tasks.push(std::move(closure));
   }
   _cv.notify_one();
 }
 
-}  // namespace detail::fy
+}  // namespace detail::bd
 
-void Folly::CreateFuture() {
-  std::ignore = folly::makeFuture<int>(42);
+void BoostThread::CreateFuture() {
+  std::ignore = boost::make_ready_future(42);
 }
 
-void Folly::PromiseAndFuture() {
-  folly::Promise<int> p;
-  folly::Future<int> f = p.getFuture();
-  std::move(p).setValue(42);
+void BoostThread::PromiseAndFuture() {
+  boost::promise<int> p;
+  boost::future<int> f = p.get_future();
+  std::move(p).set_value(42);
   std::ignore = std::move(f).get();
 }
 
-void Folly::SomeThens(Executor* executor, size_t n, bool no_inline) {
+void BoostThread::SomeThens(BoostThread::Executor* executor, size_t n, bool no_inline) {
   const bool is_executor = executor != nullptr;
-  auto f = folly::makeFuture(42).via(executor);
-  f = Thens(std::move(f), n, is_executor && no_inline);
-  f = Thens(std::move(f), 1, is_executor);
-  f = Thens(std::move(f), n, is_executor && no_inline);
+  auto f = boost::make_ready_future(42);
+  f = Thens(executor, std::move(f), n, is_executor && no_inline);
+  f = Thens(executor, std::move(f), 1, is_executor);
+  f = Thens(executor, std::move(f), n, is_executor && no_inline);
   f.wait();
 }
 
-void Folly::NoContention(benchmark::State& state) {
+void BoostThread::NoContention(benchmark::State& state) {
   state.PauseTiming();
 
-  std::vector<folly::Promise<int>> promises(kContentionIteration);
-  std::vector<folly::Future<int>> futures;
+  std::vector<boost::promise<int>> promises(kContentionIteration);
+  std::vector<boost::future<int>> futures;
   futures.reserve(kContentionIteration);
 
   std::promise<void> p_producer;
   auto f_producer = p_producer.get_future();
 
   for (auto& p : promises) {
-    futures.push_back(p.getFuture().thenInline(Incr<int>));
+    futures.push_back(p.get_future().then(detail::bd::sInline, Incr<int>));
   }
 
   std::thread producer{[&] {
     p_producer.set_value();
     for (auto& p : promises) {
-      std::move(p).setValue(42);
+      std::move(p).set_value(42);
     }
   }};
 
@@ -134,15 +130,15 @@ void Folly::NoContention(benchmark::State& state) {
   producer.join();
 }
 
-void Folly::Contention(benchmark::State& state) {
+void BoostThread::Contention(benchmark::State& state) {
   state.PauseTiming();
 
-  std::vector<folly::Promise<int>> promises(kContentionIteration);
-  std::vector<folly::Future<int>> futures;
+  std::vector<boost::promise<int>> promises(kContentionIteration);
+  std::vector<boost::future<int>> futures;
   futures.reserve(kContentionIteration);
 
   for (auto& p : promises) {
-    futures.push_back(p.getFuture());
+    futures.push_back(p.get_future());
   }
 
   BusySemaphoreSPSC semaphore;
@@ -155,14 +151,14 @@ void Folly::Contention(benchmark::State& state) {
     p_producer.set_value();
     for (auto& p : promises) {
       semaphore.Release();
-      std::move(p).setValue(42);
+      std::move(p).set_value(42);
     }
   });
   auto consumer = std::thread([&] {
     p_consumer.set_value();
     for (auto& f : futures) {
       semaphore.Acquire();
-      f = std::move(f).thenInline(Incr<int>);
+      f = std::move(f).then(detail::bd::sInline, Incr<int>);
     }
   });
 

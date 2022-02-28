@@ -32,35 +32,35 @@ QFuture<T> FGen() {
     f = f.then(QtFuture::Launch::Sync,
                [] {
                })
-            .then(QtFuture::Launch::Sync,
-                  [](T) {
-                    return QtFuture::makeReadyFuture();
-                  })
-            .then(QtFuture::Launch::Sync,
-                  [](QFuture<void>&& f1) {
-                    f1.waitForFinished();
-                  })
-            .then(QtFuture::Launch::Sync, [] {
-              return QtFuture::makeReadyFuture();
-            });
+          .then(QtFuture::Launch::Sync,
+                [](T) {
+                  return QtFuture::makeReadyFuture();
+                })
+          .then(QtFuture::Launch::Sync,
+                [](QFuture<void>&& f1) {
+                  f1.waitForFinished();
+                })
+          .then(QtFuture::Launch::Sync, [] {
+            return QtFuture::makeReadyFuture();
+          });
     p.finish();
   } else {
     f = f.then(QtFuture::Launch::Sync,
                [](T&& t) {
                  return std::move(t);
                })
-            .then(QtFuture::Launch::Sync,
-                  [](T&& t) {
-                    return QtFuture::makeReadyFuture(std::move(t));
-                  })
-            .then(QtFuture::Launch::Sync,
-                  [](QFuture<T>&& t) {
-                    return QtFuture::makeReadyFuture(t.result());
-                  })
-            .then(QtFuture::Launch::Sync, [](QFuture<T>&& t) {
-              auto f1 = QtFuture::makeReadyFuture(std::move(t.result()));
-              return f1.result();
-            });
+          .then(QtFuture::Launch::Sync,
+                [](T&& t) {
+                  return QtFuture::makeReadyFuture(std::move(t));
+                })
+          .then(QtFuture::Launch::Sync,
+                [](QFuture<T>&& t) {
+                  return QtFuture::makeReadyFuture(t.result());
+                })
+          .then(QtFuture::Launch::Sync, [](QFuture<T>&& t) {
+            auto f1 = QtFuture::makeReadyFuture(std::move(t.result()));
+            return f1.result();
+          });
     p.addResult(T{});
     p.finish();
   }

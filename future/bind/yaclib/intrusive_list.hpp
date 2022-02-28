@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <utility>
 
-namespace bench::detail {
+namespace bench::detail::yb {
 
 template <typename T>
 class List final {
@@ -58,4 +58,4 @@ class List final {
   yaclib::detail::Node* _tail = &_head;  // need for PushBack
 };
 
-}  // namespace bench::detail
+}  // namespace bench::detail::yb

@@ -5,7 +5,7 @@ namespace bench {
 template <typename Library>
 void ConstantFuture(benchmark::State& state) {
   for (auto _ : state) {
-    Library::CreateFuture(42);
+    Library::CreateFuture();
   }
 }
 

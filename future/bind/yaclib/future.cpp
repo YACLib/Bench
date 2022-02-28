@@ -1,10 +1,10 @@
-#include "bind/yaclib/future.hpp"
-
-#include "bind/yaclib/intrusive_list.hpp"
-
+#include <bind/yaclib/future.hpp>
+#include <bind/yaclib/intrusive_list.hpp>
+#include <semaphore.hpp>
 #include <yaclib/async/future.hpp>
 #include <yaclib/executor/inline.hpp>
 
+#include <future>
 #include <thread>
 
 #include <benchmark/benchmark.h>
@@ -17,124 +17,128 @@ T Incr(yaclib::Result<T>&& r) {
   return std::move(r).Ok() + 1;
 }
 
-}  // namespace
-namespace detail::yb {
-
-class TestExecutor final : public yaclib::IExecutor {
- public:
-  explicit TestExecutor(size_t numThreads) {
-    numThreads = std::max(size_t{1}, numThreads);
-    _workers.reserve(numThreads);
-    for (auto idx = size_t{0}; idx != numThreads; ++idx) {
-      _workers.emplace_back([this] {
-        std::unique_lock guard{_m};
-        while (true) {
-          while (!_tasks.Empty()) {
-            auto& task = _tasks.PopFront();
-            guard.unlock();
-            task.Call();
-            task.DecRef();
-            guard.lock();
-          }
-          if (_stop) {
-            return;
-          }
-          _cv.wait(guard);
-        }
-      });
-    }
-  }
-
-  ~TestExecutor() final {
-    {
-      std::lock_guard guard{_m};
-      _stop = true;
-    }
-    _cv.notify_all();
-    for (auto& worker : _workers) {
-      worker.join();
-    }
-  }
-
- private:
-  void IncRef() noexcept final {
-  }
-  void DecRef() noexcept final {
-  }
-
-  [[nodiscard]] Type Tag() const final {
-    return Type::Custom;
-  }
-
-  bool Submit(yaclib::ITask& task) noexcept {
-    task.IncRef();
-    {
-      std::lock_guard guard{_m};
-      _tasks.PushBack(task);
-    }
-    _cv.notify_one();
-    return true;
-  }
-
-  std::mutex _m;
-  std::condition_variable _cv;
-  List<yaclib::ITask> _tasks;
-  std::vector<std::thread> _workers;
-  bool _stop{false};
-};
-
-}  // namespace detail::yb
-
-void YACLib::SomeThens(size_t n) {
-  auto f = yaclib::MakeFuture(42).Via(yaclib::MakeInline());
-  f = Thens(std::move(f), n);
-  Wait(f);
-}
-
-void YACLib::SomeThensOnThread(size_t n, bool run_inline) {
-  auto executor = std::make_unique<detail::yb::TestExecutor>(1);
-  auto f = yaclib::MakeFuture(42).Via(executor.get());
-  f = Thens(std::move(f), n / 2, run_inline);
-  f = Thens(std::move(f), 1, false);
-  f = Thens(std::move(f), n / 2, run_inline);
-  Wait(f);
-}
-
-yaclib::Future<int> YACLib::Thens(yaclib::Future<int> f, size_t n, bool runInline) {
-  for (size_t i = 0; i < n; i++) {
-    if (runInline) {
-      f = std::move(f).ThenInline(Incr<int>);
-    } else {
+yaclib::Future<int> Thens(yaclib::Future<int> f, std::size_t n, bool is_executor) {
+  for (std::size_t i = 0; i != n; ++i) {
+    if (is_executor) {
       f = std::move(f).Then(Incr<int>);
+    } else {
+      f = std::move(f).ThenInline(Incr<int>);
     }
   }
   return f;
 }
 
+}  // namespace
+namespace detail::yb {
+
+TestExecutor::TestExecutor(std::size_t num_threads) {
+  num_threads = std::max(std::size_t{1}, num_threads);
+  _workers.reserve(num_threads);
+  for (std::size_t i = 0; i != num_threads; ++i) {
+    _workers.emplace_back([this] {
+      std::unique_lock lock{_m};
+      while (true) {
+        while (!_tasks.Empty()) {
+          auto& task = _tasks.PopFront();
+          lock.unlock();
+          task.Call();
+          task.DecRef();
+          lock.lock();
+        }
+        if (_stop) {
+          return;
+        }
+        _cv.wait(lock);
+      }
+    });
+  }
+}
+
+void TestExecutor::Restart() {
+  std::lock_guard lock{_m};
+}
+
+void TestExecutor::Join() {
+  {
+    std::lock_guard lock{_m};
+    _stop = true;
+  }
+  _cv.notify_all();
+  for (auto& worker : _workers) {
+    if (worker.joinable()) {
+      worker.join();
+    }
+  }
+}
+
+TestExecutor::~TestExecutor() {
+  Join();
+}
+
+yaclib::IExecutor::Type TestExecutor::Tag() const {
+  return Type::Custom;
+}
+
+bool TestExecutor::Submit(yaclib::ITask& task) noexcept {
+  task.IncRef();
+  {
+    std::lock_guard guard{_m};
+    _tasks.PushBack(task);
+  }
+  _cv.notify_one();
+  return true;
+}
+
+}  // namespace detail::yb
+
+void YACLib::CreateFuture() {
+  std::ignore = yaclib::MakeFuture(42);
+}
+
+void YACLib::PromiseAndFuture() {
+  auto [f, p] = yaclib::MakeContract<int>();
+  std::move(p).Set(42);
+  std::ignore = std::move(f).Get().Ok();
+}
+
+void YACLib::SomeThens(YACLib::Executor* executor, size_t n, bool no_inline) {
+  const bool is_executor = executor != nullptr;
+  auto f = yaclib::MakeFuture(42).Via(executor);
+  f = Thens(std::move(f), n, is_executor && no_inline);
+  f = Thens(std::move(f), 1, is_executor);
+  f = Thens(std::move(f), n, is_executor && no_inline);
+  Wait(f);
+}
+
 void YACLib::NoContention(benchmark::State& state) {
   state.PauseTiming();
+
   std::vector<yaclib::Promise<int>> promises;
   std::vector<yaclib::Future<int>> futures;
-  promises.reserve(10000);
-  futures.reserve(10000);
+  promises.reserve(kContentionIteration);
+  futures.reserve(kContentionIteration);
 
-  auto [f2, p2] = yaclib::MakeContract<void>();
+  std::promise<void> p_producer;
+  auto f_producer = p_producer.get_future();
 
-  for (std::size_t i = 0; i < 10000; ++i) {
+  for (std::size_t i = 0; i != kContentionIteration; ++i) {
     auto [f, p] = yaclib::MakeContract<int>();
     promises.emplace_back(std::move(p));
     futures.emplace_back(std::move(f).ThenInline(Incr<int>));
   }
 
-  auto producer = std::thread([&, p2 = std::move(p2)]() mutable {
-    std::move(p2).Set();
+  auto producer = std::thread([&]() mutable {
+    p_producer.set_value();
+
     for (auto& p : promises) {
       std::move(p).Set(42);
     }
   });
-  Wait(f2);
+
+  f_producer.wait();
 
   state.ResumeTiming();
+
   producer.join();
 }
 
@@ -143,42 +147,43 @@ void YACLib::Contention(benchmark::State& state) {
 
   std::vector<yaclib::Promise<int>> promises;
   std::vector<yaclib::Future<int>> futures;
-  promises.reserve(10000);
-  futures.reserve(10000);
-  folly::NativeSemaphore sem;
-  folly::Baton<> b1;
-  folly::Baton<> b2;
-  for (std::size_t i = 0; i < 10000; ++i) {
+  promises.reserve(kContentionIteration);
+  futures.reserve(kContentionIteration);
+
+  for (std::size_t i = 0; i != kContentionIteration; ++i) {
     auto [f, p] = yaclib::MakeContract<int>();
     futures.push_back(std::move(f));
     promises.push_back(std::move(p));
   }
+
+  BusySemaphoreSPSC semaphore;
+  std::promise<void> p_consumer;
+  auto f_consumer = p_consumer.get_future();
+  std::promise<void> p_producer;
+  auto f_producer = p_producer.get_future();
+
   auto producer = std::thread([&] {
-    b2.post();
+    p_producer.set_value();
     for (auto& p : promises) {
-      sem.post();
+      semaphore.Release();
       std::move(p).Set(42);
     }
   });
   auto consumer = std::thread([&] {
-    b1.post();
+    p_consumer.set_value();
     for (auto& f : futures) {
-      sem.wait();
+      semaphore.Acquire();
       f = std::move(f).ThenInline(Incr<int>);
     }
   });
-  b1.wait();
-  b2.wait();
+
+  f_consumer.wait();
+  f_producer.wait();
 
   state.ResumeTiming();
 
-  consumer.join();
   producer.join();
-}
-void YACLib::PromiseAndFuture() {
-  auto [f, p] = yaclib::MakeContract<int>();
-  std::move(p).Set(42);
-  std::move(f).Get().Ok();
+  consumer.join();
 }
 
 }  // namespace bench
