@@ -1,3 +1,4 @@
+```
 2022-03-03T14:37:59+02:00
 Running ./build_clang_libcxx/future/future
 Run on (24 X 3868.18 MHz CPU s)
@@ -334,3 +335,4 @@ NoContention(BoostThread)/real_time        4563109 ns      2828566 ns          1
 Contention(YACLib)/real_time                670465 ns       154046 ns         1015
 Contention(Folly)/real_time                2577796 ns       528689 ns          271
 Contention(BoostThread)/real_time          4742608 ns      2055291 ns          134
+```
