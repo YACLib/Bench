@@ -2,9 +2,7 @@
 
 ## Results
 
-### Future
-
-* [i7-11850H](future/result/i7-11850H)
+Future benchmark [results](future/result/).
 
 ## How to add your own results
 
