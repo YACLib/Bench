@@ -32,6 +32,8 @@ If you install all these dependencies, you can run:
 ./script/run.sh --proc="Your proc name without space"
 ```
 
+At this point, new benchmark results will be in `:/future/result/<Your proc name without space>`
+
 Then commit and make PR, thanks!
 
 <details>
