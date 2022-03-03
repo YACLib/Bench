@@ -14,10 +14,6 @@ Need to install:
 ```
 cmake
 ninja
-```
-
-Also you can install:
-```
 gcc
 g++
 clang
