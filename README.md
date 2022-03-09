@@ -2,7 +2,7 @@
 
 ## Results
 
-Future benchmark [results](future/result/).
+Future benchmark [results](future/result/RESULTS.md).
 
 ## How to add your own results
 
