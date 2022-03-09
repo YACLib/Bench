@@ -31,4 +31,6 @@ mkdir -p "$dir/gcc_libstdcxx"
 
 ./build_gcc_libstdcxx/future/future --benchmark_out_format="json" --benchmark_out="$dir/gcc_libstdcxx/data.json"
 
+echo "- [$proc]($proc/)" >> future/result/RESULTS.md
+
 git add .
