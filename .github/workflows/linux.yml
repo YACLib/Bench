@@ -40,9 +40,9 @@ jobs:
             c_compiler=clang-14; cxx_compiler=clang++-14
           fi
           if [[ "${{ matrix.compiler }}" == "clang_libcxx" ]]; then
-            options="-DLIBCXX=ON -DSTD=ON -DYACLIB=ON"            
+            options="-DLIBCXX=ON -DSTD=ON -DYACLIB=main"            
           else
-            options="            -DSTD=ON -DYACLIB=ON -DBOOST_THREAD=ON"
+            options="            -DSTD=ON -DYACLIB=main -DBOOST_THREAD=ON"
           fi
           cmake -S . -B $dir                                   \
             -DCMAKE_BUILD_TYPE=$build_type                     \

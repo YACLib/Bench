@@ -41,7 +41,7 @@ mold 1.1 (89612b709638b90c8a044e2f96f47d28054ba789; compatible with GNU ld)
 cmake -GNinja                                       \
   -DCMAKE_BUILD_TYPE=Release                        \
   -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++   \
-  -DSTD=ON -DYACLIB=ON -DFOLLY=ON -DBOOST_THREAD=ON
+  -DSTD=ON -DYACLIB=main -DFOLLY=ON -DBOOST_THREAD=ON
 ```
 
 ##### Results
@@ -255,7 +255,7 @@ mold 1.1 (89612b709638b90c8a044e2f96f47d28054ba789; compatible with GNU ld)
 cmake -GNinja                                           \
   -DCMAKE_BUILD_TYPE=Release                            \
   -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-  -DSTD=ON -DYACLIB=ON -DFOLLY=ON -DBOOST_THREAD=ON
+  -DSTD=ON -DYACLIB=main -DFOLLY=ON -DBOOST_THREAD=ON
 ```
 
 ##### Results
@@ -470,7 +470,7 @@ cmake -GNinja                                           \
   -DCMAKE_BUILD_TYPE=Release                            \
   -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
   -DLIBCXX=ON                                           \
-  -DSTD=ON -DYACLIB=ON
+  -DSTD=ON -DYACLIB=main
 ```
 
 ##### Results

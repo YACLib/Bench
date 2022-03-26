@@ -15,7 +15,7 @@ for i in "$@"; do
 done
 
 if [[ -z "$proc" ]]; then
-  echo "You should specify --proc="" option"
+  echo "You should specify --proc=... option"
   exit 1
 fi
 
