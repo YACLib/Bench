@@ -6,11 +6,11 @@
 
 #define BENCH2(name, library, arg)                                                                                     \
   BENCHMARK_PRIVATE_DECLARE(name) = (::benchmark::internal::RegisterBenchmarkInternal(                                 \
-    new ::benchmark::internal::FunctionBenchmark(#name "(" #library ")/" #arg, name<library, arg>)))
+    new ::benchmark::internal::FunctionBenchmark(#name "/" #library "/" #arg, name<library, arg>)))
 
 #define BENCH1(name, library)                                                                                          \
   BENCHMARK_PRIVATE_DECLARE(name) = (::benchmark::internal::RegisterBenchmarkInternal(                                 \
-    new ::benchmark::internal::FunctionBenchmark(#name "(" #library ")", name<library>)))
+    new ::benchmark::internal::FunctionBenchmark(#name "/" #library, name<library>)))
 
 #define GET_MACRO(_1, _2, _3, NAME, ...) NAME
 
