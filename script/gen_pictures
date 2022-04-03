@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+
+import argparse
+import json
+import re
+
+
+def parse_args():
+    """
+    --src /path/to/data.json file
+    --dst /path/to/pictures_folder
+    """
+    # TODO: improve it
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-s", "--src", type=str, help="data.json location", required=True)
+    parser.add_argument("-d", "--dst", type=str, help="data.json location", required=True)
+    args = parser.parse_args()
+    return args
+
+
+def read_file(data_file):
+    with open(data_file) as f:
+        return json.load(f)
+
+
+def main():
+    args = parse_args()
+    json_ = read_file(args.src)
+    pattern = r'\((.*)\)'
+    benchmark_results = {}
+    for bench in json_["benchmarks"]:
+        bname = str(bench["name"])
+        match = re.search(pattern, bname)
+        bname = re.sub(pattern=pattern, repl='', string=bname)
+        libname = match.group(0)[1:-1]
+        benchmark_results[bname] = {libname: bench['real_time']}
+    for bench_name, results in benchmark_results.items():
+        print(bench_name)
+        print(results)
+
+
+if __name__ == '__main__':
+    main()
