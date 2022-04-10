@@ -22,9 +22,7 @@ def parse_args():
     return args
 
 
-def parse_bench_results(data_file):
-    with open(data_file) as f:
-        json_ = json.load(f)
+def parse_bench_results(json_):
     benchmark_results = {}
     for bench in json_["benchmarks"]:
         bname = bench["name"].split('/')
@@ -73,7 +71,7 @@ def generate_picture(name, bench_data, save_path):
     width = 1
     x = np.arange(0, width * (libnumber + 1) * benchmark_len, (libnumber + 1) * width)
 
-    fig, ax = plt.subplots(figsize=(6, 4))
+    fig, ax = plt.subplots(figsize=(40, 30))
     for i, libname in enumerate(bench_data.keys()):
         y = bench_data[libname].values()
         ax.bar(x + i * width, y, width, linewidth=1, label=libname, color=library_to_color[libname])
@@ -84,6 +82,8 @@ def generate_picture(name, bench_data, save_path):
     ax.tick_params(direction='out', labelsize='30')
     ax.legend(prop={'size': 40}, loc='lower right')
     plt.savefig(picture_file)
+    plt.clf()
+    plt.close(fig)
 
 
 # bench_results: dict [BenchGroupName][LibraryName]["X arg"] -> Time ("Y arg")
@@ -99,7 +99,10 @@ def main():
     for cur_dir, subdirs, files in os.walk(args.src):
         if 'data.json' in files:
             bench_filename = path.join(cur_dir, 'data.json')
-            benchmark_results = parse_bench_results(bench_filename)
+            print(f'Parse pictures: {bench_filename}')
+            with open(bench_filename) as f:
+                json_ = json.load(f)
+            benchmark_results = parse_bench_results(json_)
             save_path = cur_dir
             draw_bench_results(benchmark_results, save_path)
 
