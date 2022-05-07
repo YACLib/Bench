@@ -65,8 +65,9 @@ struct Folly {
   static void CreateFuture();
   static void PromiseAndFuture();
 
-  using Executor = detail::fy::TestExecutor;
-  static void SomeThens(Executor* executor, size_t n, bool no_inline);
+  static detail::fy::TestExecutor* AcquireExecutor(std::size_t threads);
+  static void SomeThens(detail::fy::TestExecutor* executor, size_t n, bool no_inline);
+  static void ReleaseExecutor(std::size_t threads, detail::fy::TestExecutor* e);
 
   template <typename T = folly::Unit>
   static void ComplexBenchmark();

@@ -2,7 +2,7 @@
 #include <bind/yaclib/intrusive_list.hpp>
 #include <semaphore.hpp>
 #include <yaclib/async/future.hpp>
-#include <yaclib/executor/inline.hpp>
+#include <yaclib/exe/inline.hpp>
 
 #include <future>
 #include <thread>
@@ -17,7 +17,7 @@ T Incr(yaclib::Result<T>&& r) {
   return std::move(r).Ok() + 1;
 }
 
-yaclib::Future<int> Thens(yaclib::Future<int> f, std::size_t n, bool is_executor) {
+yaclib::FutureOn<int> Thens(yaclib::FutureOn<int> f, std::size_t n, bool is_executor) {
   for (std::size_t i = 0; i != n; ++i) {
     if (is_executor) {
       f = std::move(f).Then(Incr<int>);
@@ -38,11 +38,10 @@ TestExecutor::TestExecutor(std::size_t num_threads) {
     _workers.emplace_back([this] {
       std::unique_lock lock{_m};
       while (true) {
-        while (!_tasks.Empty()) {
-          auto& task = _tasks.PopFront();
+        while (!_jobs.Empty()) {
+          auto& job = _jobs.PopFront();
           lock.unlock();
-          task.Call();
-          task.DecRef();
+          static_cast<yaclib::Job&>(job).Call();
           lock.lock();
         }
         if (_stop) {
@@ -79,14 +78,12 @@ yaclib::IExecutor::Type TestExecutor::Tag() const {
   return Type::Custom;
 }
 
-bool TestExecutor::Submit(yaclib::ITask& task) noexcept {
-  task.IncRef();
+void TestExecutor::Submit(yaclib::Job& job) noexcept {
   {
     std::lock_guard guard{_m};
-    _tasks.PushBack(task);
+    _jobs.PushBack(job);
   }
   _cv.notify_one();
-  return true;
 }
 
 }  // namespace detail::yb
@@ -101,13 +98,26 @@ void YACLib::PromiseAndFuture() {
   std::ignore = std::move(f).Get().Ok();
 }
 
-void YACLib::SomeThens(YACLib::Executor* executor, size_t n, bool no_inline) {
-  const bool is_executor = executor != nullptr;
-  auto f = yaclib::MakeFuture(42).Via(executor);
+detail::yb::TestExecutor* YACLib::AcquireExecutor(std::size_t threads) {
+  if (threads != 0) {
+    return new detail::yb::TestExecutor{threads};
+  }
+  return nullptr;
+}
+
+void YACLib::SomeThens(detail::yb::TestExecutor* executor, size_t n, bool no_inline) {
+  bool is_executor = executor != nullptr;
+  auto f = yaclib::MakeFuture(42).On(executor != nullptr ? *executor : yaclib::MakeInline());
   f = Thens(std::move(f), n, is_executor && no_inline);
   f = Thens(std::move(f), 1, is_executor);
   f = Thens(std::move(f), n, is_executor && no_inline);
   Wait(f);
+}
+
+void YACLib::ReleaseExecutor(std::size_t threads, detail::yb::TestExecutor* e) {
+  if (threads != 0) {
+    delete e;
+  }
 }
 
 void YACLib::NoContention(benchmark::State& state) {

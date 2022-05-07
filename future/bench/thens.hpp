@@ -8,18 +8,14 @@ template <typename Library>
 void Then(benchmark::State& state) {
   auto const count = state.range(0);
   auto const type = state.range(1);
-  std::unique_ptr<typename Library::Executor> executor;
-  if (type != 0) {
-    executor = std::make_unique<typename Library::Executor>(1);
-  }
+  auto* executor = Library::AcquireExecutor(/*threads*/ static_cast<size_t>(type != 0));
   for (auto _ : state) {
-    if (type == 0) {
-      Library::SomeThens(nullptr, count, false);
-    } else {
-      Library::SomeThens(executor.get(), count, type == 2);
+    Library::SomeThens(executor, count, type == 2);
+    if (executor != nullptr) {
       executor->Restart();
     }
   }
+  Library::ReleaseExecutor(/*threads*/ static_cast<size_t>(type != 0), executor);
 }
 
 }  // namespace bench

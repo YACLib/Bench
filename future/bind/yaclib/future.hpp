@@ -5,7 +5,7 @@
 #include <yaclib/algo/when_any.hpp>
 #include <yaclib/async/contract.hpp>
 #include <yaclib/async/future.hpp>
-#include <yaclib/executor/inline.hpp>
+#include <yaclib/exe/inline.hpp>
 
 #include <condition_variable>
 #include <memory>
@@ -34,11 +34,11 @@ class TestExecutor final : public yaclib::IExecutor {
 
   [[nodiscard]] Type Tag() const final;
 
-  bool Submit(yaclib::ITask& task) noexcept final;
+  void Submit(yaclib::Job& job) noexcept final;
 
   std::mutex _m;
   std::condition_variable _cv;
-  List<yaclib::ITask> _tasks;
+  List<yaclib::Job> _jobs;
   std::vector<std::thread> _workers;
   bool _stop = false;
 };
@@ -94,8 +94,9 @@ struct YACLib {
   static void CreateFuture();
   static void PromiseAndFuture();
 
-  using Executor = detail::yb::TestExecutor;
-  static void SomeThens(Executor* executor, size_t n, bool no_inline);
+  static detail::yb::TestExecutor* AcquireExecutor(std::size_t threads);
+  static void SomeThens(detail::yb::TestExecutor* executor, size_t n, bool no_inline);
+  static void ReleaseExecutor(std::size_t threads, detail::yb::TestExecutor* e);
 
   template <typename T = void>
   static void ComplexBenchmark();

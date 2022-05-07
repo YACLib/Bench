@@ -37,7 +37,6 @@ if (YACLIB)
     GIT_REPOSITORY https://github.com/YACLib/YACLib.git
     GIT_TAG "${YACLIB}"
     )
-  set(YACLIB_CXX_STANDARD 20)
   list(APPEND YACLIB_FLAGS "ATOMIC_EVENT")
   FetchContent_MakeAvailable(yaclib)
   link_libraries(yaclib)

@@ -97,7 +97,20 @@ void Folly::PromiseAndFuture() {
   std::ignore = std::move(f).get();
 }
 
-void Folly::SomeThens(Executor* executor, size_t n, bool no_inline) {
+detail::fy::TestExecutor* Folly::AcquireExecutor(std::size_t threads) {
+  if (threads != 0) {
+    return new detail::fy::TestExecutor{threads};
+  }
+  return nullptr;
+}
+
+void Folly::ReleaseExecutor(std::size_t threads, detail::fy::TestExecutor* e) {
+  if (threads != 0) {
+    delete e;
+  }
+}
+
+void Folly::SomeThens(detail::fy::TestExecutor* executor, size_t n, bool no_inline) {
   const bool is_executor = executor != nullptr;
   auto f = folly::makeFuture(42).via(executor);
   f = Thens(std::move(f), n, is_executor && no_inline);
