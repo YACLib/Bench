@@ -12,17 +12,22 @@
 namespace bench {
 namespace {
 
-template <typename T>
-T Incr(folly::Try<T>&& t) {
-  return std::move(t).value() + 1;
+#ifdef HEAVY
+auto Incr = [SIZEOF_F](folly::Try<int>&& r) -> int {
+  return std::move(r).value() + 1;
+};
+#else
+int Incr(folly::Try<int>&& r) {
+  return std::move(r).value() + 1;
 }
+#endif
 
 folly::Future<int> Thens(folly::Future<int> f, std::size_t n, bool is_executor) {
   for (std::size_t i = 0; i != n; ++i) {
     if (is_executor) {
-      f = std::move(f).then(Incr<int>);
+      f = std::move(f).then(Incr);
     } else {
-      f = std::move(f).thenInline(Incr<int>);
+      f = std::move(f).thenInline(Incr);
     }
   }
   return f;
@@ -130,7 +135,7 @@ void Folly::NoContention(benchmark::State& state) {
   auto f_producer = p_producer.get_future();
 
   for (auto& p : promises) {
-    futures.push_back(p.getFuture().thenInline(Incr<int>));
+    futures.push_back(p.getFuture().thenInline(Incr));
   }
 
   std::thread producer{[&] {
@@ -175,7 +180,7 @@ void Folly::Contention(benchmark::State& state) {
     p_consumer.set_value();
     for (auto& f : futures) {
       semaphore.Acquire();
-      f = std::move(f).thenInline(Incr<int>);
+      f = std::move(f).thenInline(Incr);
     }
   });
 
@@ -196,13 +201,13 @@ void Folly::ComplexBenchmark() {
   std::ignore = folly::collectAny(fs.begin(), fs.end()).value();
   fs = detail::fy::FsGen<T>();
   for (auto& f : fs) {
-    f = std::move(f).thenValueInline([](T&& t) {
+    f = std::move(f).thenValueInline([SIZEOF_F](T&& t) {
       return std::move(t);
     });
   }
   fs = detail::fy::FsGen<T>();
   for (auto& f : fs) {
-    f = std::move(f).thenValueInline([](T&& t) {
+    f = std::move(f).thenValueInline([SIZEOF_F](T&& t) {
       return folly::makeFuture(T{std::move(t)});
     });
   }

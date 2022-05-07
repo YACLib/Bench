@@ -12,17 +12,22 @@
 namespace bench {
 namespace {
 
-template <typename T>
-T Incr(yaclib::Result<T>&& r) {
+#ifdef HEAVY
+auto Incr = [SIZEOF_F](yaclib::Result<int>&& r) -> int {
+  return std::move(r).Ok() + 1;
+};
+#else
+int Incr(yaclib::Result<int>&& r) {
   return std::move(r).Ok() + 1;
 }
+#endif
 
 yaclib::FutureOn<int> Thens(yaclib::FutureOn<int> f, std::size_t n, bool is_executor) {
   for (std::size_t i = 0; i != n; ++i) {
     if (is_executor) {
-      f = std::move(f).Then(Incr<int>);
+      f = std::move(f).Then(Incr);
     } else {
-      f = std::move(f).ThenInline(Incr<int>);
+      f = std::move(f).ThenInline(Incr);
     }
   }
   return f;
@@ -134,7 +139,7 @@ void YACLib::NoContention(benchmark::State& state) {
   for (std::size_t i = 0; i != kContentionIteration; ++i) {
     auto [f, p] = yaclib::MakeContract<int>();
     promises.emplace_back(std::move(p));
-    futures.emplace_back(std::move(f).ThenInline(Incr<int>));
+    futures.emplace_back(std::move(f).ThenInline(Incr));
   }
 
   auto producer = std::thread([&]() mutable {
@@ -183,7 +188,7 @@ void YACLib::Contention(benchmark::State& state) {
     p_consumer.set_value();
     for (auto& f : futures) {
       semaphore.Acquire();
-      f = std::move(f).ThenInline(Incr<int>);
+      f = std::move(f).ThenInline(Incr);
     }
   });
 
@@ -205,10 +210,10 @@ void YACLib::ComplexBenchmark() {
   fs = detail::yb::FsGen<T>();
   for (auto& f : fs) {
     if constexpr (std::is_void_v<T>) {
-      f = std::move(f).ThenInline([] {
+      f = std::move(f).ThenInline([SIZEOF_F] {
       });
     } else {
-      f = std::move(f).ThenInline([](T&& t) {
+      f = std::move(f).ThenInline([SIZEOF_F](T&& t) {
         return std::move(t);
       });
     }
@@ -216,11 +221,11 @@ void YACLib::ComplexBenchmark() {
   fs = detail::yb::FsGen<T>();
   for (auto& f : fs) {
     if constexpr (std::is_void_v<T>) {
-      f = std::move(f).ThenInline([](yaclib::Result<T>&& /*TODO(MBkkt) remove this*/) {
+      f = std::move(f).ThenInline([SIZEOF_F](yaclib::Result<T>&& /*TODO(MBkkt) remove this*/) {
         return yaclib::MakeFuture();
       });
     } else {
-      f = std::move(f).ThenInline([](T&& t) {
+      f = std::move(f).ThenInline([SIZEOF_F](T&& t) {
         return yaclib::MakeFuture(std::move(t));
       });
     }

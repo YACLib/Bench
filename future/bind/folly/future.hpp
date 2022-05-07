@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bind/blob.hpp>
+#include <bind/heavy.hpp>
 
 #include <vector>
 
@@ -35,16 +36,16 @@ folly::Future<T> FGen() {
   folly::Promise<T> p;
   auto f = p.getFuture();
   f = std::move(f)
-        .thenValueInline([](T&& t) {
+        .thenValueInline([SIZEOF_F](T&& t) {
           return std::move(t);
         })
-        .thenValueInline([](T&& t) {
+        .thenValueInline([SIZEOF_F](T&& t) {
           return folly::makeFuture(std::move(t));
         })
-        .thenValueInline([](T&& t) {
+        .thenValueInline([SIZEOF_F](T&& t) {
           return std::move(t);
         })
-        .thenValueInline([](T&& t) {
+        .thenValueInline([SIZEOF_F](T&& t) {
           return folly::makeFuture(std::move(t));
         });
   p.setValue(T{});

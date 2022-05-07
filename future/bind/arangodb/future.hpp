@@ -2,6 +2,7 @@
 
 #include <arangodb/futures/function2.hpp>
 #include <bind/blob.hpp>
+#include <bind/heavy.hpp>
 
 #include <queue>
 #include <vector>
@@ -39,16 +40,16 @@ arangodb::futures::Future<T> FGen() {
   arangodb::futures::Promise<T> p;
   auto f = p.getFuture();
   f = std::move(f)
-        .thenValue([](T&& t) {
+        .thenValue([SIZEOF_F](T&& t) {
           return std::move(t);
         })
-        .thenValue([](T&& t) {
+        .thenValue([SIZEOF_F](T&& t) {
           return arangodb::futures::makeFuture(std::move(t));
         })
-        .thenValue([](T&& t) {
+        .thenValue([SIZEOF_F](T&& t) {
           return std::move(t);
         })
-        .thenValue([](T&& t) {
+        .thenValue([SIZEOF_F](T&& t) {
           return arangodb::futures::makeFuture(std::move(t));
         });
   p.setValue(T{});

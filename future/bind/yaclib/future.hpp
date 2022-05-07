@@ -1,6 +1,7 @@
 #pragma once
 
 #include <bind/blob.hpp>
+#include <bind/heavy.hpp>
 #include <bind/yaclib/intrusive_list.hpp>
 #include <yaclib/algo/when_all.hpp>
 #include <yaclib/algo/when_any.hpp>
@@ -49,29 +50,29 @@ yaclib::Future<T> FGen() {
   auto [f, p] = yaclib::MakeContract<T>();
   if constexpr (std::is_void_v<T>) {
     f = std::move(f)
-          .ThenInline([] {
+          .ThenInline([SIZEOF_F] {
           })
-          .ThenInline([](yaclib::Result<T>&& /*TODO(MBkkt) remove this*/) {
+          .ThenInline([SIZEOF_F](yaclib::Result<T>&& /*TODO(MBkkt) remove this*/) {
             return yaclib::MakeFuture();
           })
-          .ThenInline([] {
+          .ThenInline([SIZEOF_F] {
           })
-          .ThenInline([](yaclib::Result<T>&& /*TODO(MBkkt) remove this*/) {
+          .ThenInline([SIZEOF_F](yaclib::Result<T>&& /*TODO(MBkkt) remove this*/) {
             return yaclib::MakeFuture();
           });
     std::move(p).Set();
   } else {
     f = std::move(f)
-          .ThenInline([](T&& t) {
+          .ThenInline([SIZEOF_F](T&& t) {
             return std::move(t);
           })
-          .ThenInline([](T&& t) {
+          .ThenInline([SIZEOF_F](T&& t) {
             return yaclib::MakeFuture(std::move(t));
           })
-          .ThenInline([](T&& t) {
+          .ThenInline([SIZEOF_F](T&& t) {
             return std::move(t);
           })
-          .ThenInline([](T&& t) {
+          .ThenInline([SIZEOF_F](T&& t) {
             return yaclib::MakeFuture(std::move(t));
           });
     std::move(p).Set(T{});

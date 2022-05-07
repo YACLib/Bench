@@ -50,4 +50,7 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC benchmark::benchmark
   )
 
-add_bench(future) # TODO separate
+add_bench(future_lite)  # TODO separate
+
+add_compile_definitions(HEAVY)
+add_bench(future_heavy) # TODO separate
