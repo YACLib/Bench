@@ -1,6 +1,7 @@
 #pragma once
 
 #include <arangodb/futures/function2.hpp>
+#include <bind/blob.hpp>
 
 #include <queue>
 #include <vector>
@@ -82,24 +83,19 @@ struct ArangoDB {
   static void Contention(benchmark::State& state);
 };
 
-template <typename T>
-void ArangoDB::ComplexBenchmark() {
-  auto fs = detail::adb::FsGen<T>();
-  std::ignore = arangodb::futures::collectAll(fs.begin(), fs.end()).value();
-  fs = detail::adb::FsGen<T>();
-  std::ignore = arangodb::futures::collectAll /*should be Any, but we don't have it*/ (fs.begin(), fs.end()).value();
-  fs = detail::adb::FsGen<T>();
-  for (auto& f : fs) {
-    f = std::move(f).thenValue([](T&& t) {
-      return std::move(t);
-    });
-  }
-  fs = detail::adb::FsGen<T>();
-  for (auto& f : fs) {
-    f = std::move(f).thenValue([](T&& t) {
-      return arangodb::futures::makeFuture(T{std::move(t)});
-    });
-  }
-}
+extern template void ArangoDB::ComplexBenchmark<arangodb::futures::Unit>();
+extern template void ArangoDB::ComplexBenchmark<Blob<2>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<4>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<8>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<16>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<32>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<64>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<128>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<256>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<512>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<1024>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<2048>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<4096>>();
+extern template void ArangoDB::ComplexBenchmark<Blob<8192>>();
 
 }  // namespace bench

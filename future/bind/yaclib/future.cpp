@@ -196,4 +196,50 @@ void YACLib::Contention(benchmark::State& state) {
   consumer.join();
 }
 
+template <typename T>
+void YACLib::ComplexBenchmark() {
+  auto fs = detail::yb::FsGen<T>();
+  (void)WhenAll(fs.begin(), fs.end()).Get().Ok();
+  fs = detail::yb::FsGen<T>();
+  (void)WhenAny(fs.begin(), fs.end()).Get().Ok();
+  fs = detail::yb::FsGen<T>();
+  for (auto& f : fs) {
+    if constexpr (std::is_void_v<T>) {
+      f = std::move(f).ThenInline([] {
+      });
+    } else {
+      f = std::move(f).ThenInline([](T&& t) {
+        return std::move(t);
+      });
+    }
+  }
+  fs = detail::yb::FsGen<T>();
+  for (auto& f : fs) {
+    if constexpr (std::is_void_v<T>) {
+      f = std::move(f).ThenInline([](yaclib::Result<T>&& /*TODO(MBkkt) remove this*/) {
+        return yaclib::MakeFuture();
+      });
+    } else {
+      f = std::move(f).ThenInline([](T&& t) {
+        return yaclib::MakeFuture(std::move(t));
+      });
+    }
+  }
+}
+
+template void YACLib::ComplexBenchmark<void>();
+template void YACLib::ComplexBenchmark<Blob<2>>();
+template void YACLib::ComplexBenchmark<Blob<4>>();
+template void YACLib::ComplexBenchmark<Blob<8>>();
+template void YACLib::ComplexBenchmark<Blob<16>>();
+template void YACLib::ComplexBenchmark<Blob<32>>();
+template void YACLib::ComplexBenchmark<Blob<64>>();
+template void YACLib::ComplexBenchmark<Blob<128>>();
+template void YACLib::ComplexBenchmark<Blob<256>>();
+template void YACLib::ComplexBenchmark<Blob<512>>();
+template void YACLib::ComplexBenchmark<Blob<1024>>();
+template void YACLib::ComplexBenchmark<Blob<2048>>();
+template void YACLib::ComplexBenchmark<Blob<4096>>();
+template void YACLib::ComplexBenchmark<Blob<8192>>();
+
 }  // namespace bench

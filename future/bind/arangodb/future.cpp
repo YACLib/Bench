@@ -198,4 +198,39 @@ void ArangoDB::Contention(benchmark::State& state) {
   consumer.join();
 }
 
+template <typename T>
+void ArangoDB::ComplexBenchmark() {
+  auto fs = detail::adb::FsGen<T>();
+  std::ignore = arangodb::futures::collectAll(fs.begin(), fs.end()).get();
+  fs = detail::adb::FsGen<T>();
+  std::ignore = arangodb::futures::collectAll /*should be Any, but we don't have it*/ (fs.begin(), fs.end()).get();
+  fs = detail::adb::FsGen<T>();
+  for (auto& f : fs) {
+    f = std::move(f).thenValue([](T&& t) {
+      return std::move(t);
+    });
+  }
+  fs = detail::adb::FsGen<T>();
+  for (auto& f : fs) {
+    f = std::move(f).thenValue([](T&& t) {
+      return arangodb::futures::makeFuture(T{std::move(t)});
+    });
+  }
+}
+
+template void ArangoDB::ComplexBenchmark<arangodb::futures::Unit>();
+template void ArangoDB::ComplexBenchmark<Blob<2>>();
+template void ArangoDB::ComplexBenchmark<Blob<4>>();
+template void ArangoDB::ComplexBenchmark<Blob<8>>();
+template void ArangoDB::ComplexBenchmark<Blob<16>>();
+template void ArangoDB::ComplexBenchmark<Blob<32>>();
+template void ArangoDB::ComplexBenchmark<Blob<64>>();
+template void ArangoDB::ComplexBenchmark<Blob<128>>();
+template void ArangoDB::ComplexBenchmark<Blob<256>>();
+template void ArangoDB::ComplexBenchmark<Blob<512>>();
+template void ArangoDB::ComplexBenchmark<Blob<1024>>();
+template void ArangoDB::ComplexBenchmark<Blob<2048>>();
+template void ArangoDB::ComplexBenchmark<Blob<4096>>();
+template void ArangoDB::ComplexBenchmark<Blob<8192>>();
+
 }  // namespace bench
