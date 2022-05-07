@@ -14,7 +14,7 @@ namespace {
 
 template <typename T>
 T Incr(folly::Try<T>&& t) {
-  return t.value() + 1;
+  return std::move(t).value() + 1;
 }
 
 folly::Future<int> Thens(folly::Future<int> f, std::size_t n, bool is_executor) {

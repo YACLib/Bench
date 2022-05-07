@@ -1,63 +1,3 @@
-function(add_bench BENCH_PATH)
-  string(REPLACE "/" "_" BENCH_NAME ${BENCH_PATH})
-  add_executable(${BENCH_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/${BENCH_PATH}.cpp)
-  target_link_libraries(${BENCH_NAME}
-    PRIVATE ${GTEST_BOTH_LIBRARIES}
-    PRIVATE benchmark::benchmark
-    PRIVATE ${PROJECT_NAME}
-    )
-
-  if (STD)
-    target_compile_definitions(${BENCH_NAME} PUBLIC STD_ENABLE)
-  endif ()
-  if (YACLIB)
-    target_compile_definitions(${BENCH_NAME} PUBLIC YACLIB_ENABLE)
-  endif ()
-  if (FOLLY)
-    target_compile_definitions(${BENCH_NAME} PUBLIC FOLLY_ENABLE)
-  endif ()
-  if (BOOST_THREAD)
-    target_compile_definitions(${BENCH_NAME} PUBLIC BOOST_THREAD_ENABLE)
-  endif ()
-  if (QT)
-    target_compile_definitions(${BENCH_NAME} PUBLIC QT_ENABLE)
-  endif ()
-  if (EXPERIMENTAL)
-    target_compile_definitions(${BENCH_NAME} PUBLIC EXPERIMENTAL_ENABLE)
-  endif ()
-
-  add_test(NAME ${BENCH_NAME} COMMAND ${BENCH_NAME})
-endfunction()
-
-find_package(Threads REQUIRED)
-link_libraries(Threads::Threads)
-
-if (YACLIB)
-  FetchContent_Declare(yaclib
-    GIT_REPOSITORY https://github.com/YACLib/YACLib.git
-    GIT_TAG "${YACLIB}"
-    )
-  list(APPEND YACLIB_FLAGS "ATOMIC_EVENT")
-  FetchContent_MakeAvailable(yaclib)
-  link_libraries(yaclib)
-endif ()
-if (FOLLY)
-  find_package(glog CONFIG REQUIRED)  # Ad-hoc
-  find_package(folly CONFIG REQUIRED)
-  include_directories(${FOLLY_INCLUDE_DIR})
-  link_libraries(Folly::folly)
-endif ()
-if (BOOST_THREAD)
-  find_package(Boost COMPONENTS thread REQUIRED)
-  link_libraries(Boost::thread)
-endif ()
-if (QT)
-  find_package(Qt6 COMPONENTS Concurrent REQUIRED)
-  link_libraries(Qt6::Concurrent)
-endif ()
-if (EXPERIMENTAL)
-  add_link_options(-lc++experimental)
-endif ()
 # Bench ################################################################################################################
 macro(add_files)
   set(BENCH_HEADERS ${BENCH_HEADERS} PARENT_SCOPE)
@@ -74,6 +14,9 @@ if (STD)
 endif ()
 if (YACLIB)
   add_subdirectory(bind/yaclib)
+endif ()
+if (ARANGODB)
+  add_subdirectory(bind/arangodb)
 endif ()
 if (FOLLY)
   add_subdirectory(bind/folly)

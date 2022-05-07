@@ -12,6 +12,10 @@
 #include <bind/folly/future.hpp>
 #endif
 
+#ifdef ARANGODB_ENABLE
+#include <bind/arangodb/future.hpp>
+#endif
+
 #ifdef BOOST_THREAD_ENABLE
 #include <bind/boost_thread/future.hpp>
 #endif
