@@ -1,11 +1,12 @@
 #pragma once
 
+#include <bind/blob.hpp>
 #include <bind/yaclib/intrusive_list.hpp>
 #include <yaclib/algo/when_all.hpp>
 #include <yaclib/algo/when_any.hpp>
 #include <yaclib/async/contract.hpp>
 #include <yaclib/async/future.hpp>
-#include <yaclib/executor/inline.hpp>
+#include <yaclib/exe/inline.hpp>
 
 #include <condition_variable>
 #include <memory>
@@ -34,11 +35,11 @@ class TestExecutor final : public yaclib::IExecutor {
 
   [[nodiscard]] Type Tag() const final;
 
-  bool Submit(yaclib::ITask& task) noexcept final;
+  void Submit(yaclib::Job& job) noexcept final;
 
   std::mutex _m;
   std::condition_variable _cv;
-  List<yaclib::ITask> _tasks;
+  List<yaclib::Job> _jobs;
   std::vector<std::thread> _workers;
   bool _stop = false;
 };
@@ -94,8 +95,9 @@ struct YACLib {
   static void CreateFuture();
   static void PromiseAndFuture();
 
-  using Executor = detail::yb::TestExecutor;
-  static void SomeThens(Executor* executor, size_t n, bool no_inline);
+  static detail::yb::TestExecutor* AcquireExecutor(std::size_t threads);
+  static void SomeThens(detail::yb::TestExecutor* executor, size_t n, bool no_inline);
+  static void ReleaseExecutor(std::size_t threads, detail::yb::TestExecutor* e);
 
   template <typename T = void>
   static void ComplexBenchmark();
@@ -105,35 +107,19 @@ struct YACLib {
   static void Contention(benchmark::State& state);
 };
 
-template <typename T>
-void YACLib::ComplexBenchmark() {
-  auto fs = detail::yb::FsGen<T>();
-  (void)WhenAll(fs.begin(), fs.end()).Get().Ok();
-  fs = detail::yb::FsGen<T>();
-  (void)WhenAny(fs.begin(), fs.end()).Get().Ok();
-  fs = detail::yb::FsGen<T>();
-  for (auto& f : fs) {
-    if constexpr (std::is_void_v<T>) {
-      f = std::move(f).ThenInline([] {
-      });
-    } else {
-      f = std::move(f).ThenInline([](T&& t) {
-        return std::move(t);
-      });
-    }
-  }
-  fs = detail::yb::FsGen<T>();
-  for (auto& f : fs) {
-    if constexpr (std::is_void_v<T>) {
-      f = std::move(f).ThenInline([](yaclib::Result<T>&& /*TODO(MBkkt) remove this*/) {
-        return yaclib::MakeFuture();
-      });
-    } else {
-      f = std::move(f).ThenInline([](T&& t) {
-        return yaclib::MakeFuture(std::move(t));
-      });
-    }
-  }
-}
+extern template void YACLib::ComplexBenchmark<void>();
+extern template void YACLib::ComplexBenchmark<Blob<2>>();
+extern template void YACLib::ComplexBenchmark<Blob<4>>();
+extern template void YACLib::ComplexBenchmark<Blob<8>>();
+extern template void YACLib::ComplexBenchmark<Blob<16>>();
+extern template void YACLib::ComplexBenchmark<Blob<32>>();
+extern template void YACLib::ComplexBenchmark<Blob<64>>();
+extern template void YACLib::ComplexBenchmark<Blob<128>>();
+extern template void YACLib::ComplexBenchmark<Blob<256>>();
+extern template void YACLib::ComplexBenchmark<Blob<512>>();
+extern template void YACLib::ComplexBenchmark<Blob<1024>>();
+extern template void YACLib::ComplexBenchmark<Blob<2048>>();
+extern template void YACLib::ComplexBenchmark<Blob<4096>>();
+extern template void YACLib::ComplexBenchmark<Blob<8192>>();
 
 }  // namespace bench

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <bind/blob.hpp>
+
 #include <vector>
 
 #include <benchmark/benchmark.h>
@@ -65,8 +67,9 @@ struct Folly {
   static void CreateFuture();
   static void PromiseAndFuture();
 
-  using Executor = detail::fy::TestExecutor;
-  static void SomeThens(Executor* executor, size_t n, bool no_inline);
+  static detail::fy::TestExecutor* AcquireExecutor(std::size_t threads);
+  static void SomeThens(detail::fy::TestExecutor* executor, size_t n, bool no_inline);
+  static void ReleaseExecutor(std::size_t threads, detail::fy::TestExecutor* e);
 
   template <typename T = folly::Unit>
   static void ComplexBenchmark();
@@ -76,24 +79,19 @@ struct Folly {
   static void Contention(benchmark::State& state);
 };
 
-template <typename T>
-void Folly::ComplexBenchmark() {
-  auto fs = detail::fy::FsGen<T>();
-  std::ignore = folly::collectAll(fs.begin(), fs.end()).value();
-  fs = detail::fy::FsGen<T>();
-  std::ignore = folly::collectAny(fs.begin(), fs.end()).value();
-  fs = detail::fy::FsGen<T>();
-  for (auto& f : fs) {
-    f = std::move(f).thenValueInline([](T&& t) {
-      return std::move(t);
-    });
-  }
-  fs = detail::fy::FsGen<T>();
-  for (auto& f : fs) {
-    f = std::move(f).thenValueInline([](T&& t) {
-      return folly::makeFuture(T{std::move(t)});
-    });
-  }
-}
+extern template void Folly::ComplexBenchmark<folly::Unit>();
+extern template void Folly::ComplexBenchmark<Blob<2>>();
+extern template void Folly::ComplexBenchmark<Blob<4>>();
+extern template void Folly::ComplexBenchmark<Blob<8>>();
+extern template void Folly::ComplexBenchmark<Blob<16>>();
+extern template void Folly::ComplexBenchmark<Blob<32>>();
+extern template void Folly::ComplexBenchmark<Blob<64>>();
+extern template void Folly::ComplexBenchmark<Blob<128>>();
+extern template void Folly::ComplexBenchmark<Blob<256>>();
+extern template void Folly::ComplexBenchmark<Blob<512>>();
+extern template void Folly::ComplexBenchmark<Blob<1024>>();
+extern template void Folly::ComplexBenchmark<Blob<2048>>();
+extern template void Folly::ComplexBenchmark<Blob<4096>>();
+extern template void Folly::ComplexBenchmark<Blob<8192>>();
 
 }  // namespace bench

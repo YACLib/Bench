@@ -1,0 +1,8 @@
+list(APPEND BENCH_HEADERS
+  ${CMAKE_CURRENT_SOURCE_DIR}/future.hpp
+  )
+list(APPEND BENCH_SOURCES
+  ${CMAKE_CURRENT_SOURCE_DIR}/future.cpp
+  )
+
+add_files()

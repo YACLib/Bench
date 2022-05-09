@@ -14,7 +14,7 @@ namespace {
 
 template <typename T>
 T Incr(folly::Try<T>&& t) {
-  return t.value() + 1;
+  return std::move(t).value() + 1;
 }
 
 folly::Future<int> Thens(folly::Future<int> f, std::size_t n, bool is_executor) {
@@ -97,7 +97,20 @@ void Folly::PromiseAndFuture() {
   std::ignore = std::move(f).get();
 }
 
-void Folly::SomeThens(Executor* executor, size_t n, bool no_inline) {
+detail::fy::TestExecutor* Folly::AcquireExecutor(std::size_t threads) {
+  if (threads != 0) {
+    return new detail::fy::TestExecutor{threads};
+  }
+  return nullptr;
+}
+
+void Folly::ReleaseExecutor(std::size_t threads, detail::fy::TestExecutor* e) {
+  if (threads != 0) {
+    delete e;
+  }
+}
+
+void Folly::SomeThens(detail::fy::TestExecutor* executor, size_t n, bool no_inline) {
   const bool is_executor = executor != nullptr;
   auto f = folly::makeFuture(42).via(executor);
   f = Thens(std::move(f), n, is_executor && no_inline);
@@ -174,5 +187,40 @@ void Folly::Contention(benchmark::State& state) {
   producer.join();
   consumer.join();
 }
+
+template <typename T>
+void Folly::ComplexBenchmark() {
+  auto fs = detail::fy::FsGen<T>();
+  std::ignore = folly::collectAll(fs.begin(), fs.end()).value();
+  fs = detail::fy::FsGen<T>();
+  std::ignore = folly::collectAny(fs.begin(), fs.end()).value();
+  fs = detail::fy::FsGen<T>();
+  for (auto& f : fs) {
+    f = std::move(f).thenValueInline([](T&& t) {
+      return std::move(t);
+    });
+  }
+  fs = detail::fy::FsGen<T>();
+  for (auto& f : fs) {
+    f = std::move(f).thenValueInline([](T&& t) {
+      return folly::makeFuture(T{std::move(t)});
+    });
+  }
+}
+
+template void Folly::ComplexBenchmark<folly::Unit>();
+template void Folly::ComplexBenchmark<Blob<2>>();
+template void Folly::ComplexBenchmark<Blob<4>>();
+template void Folly::ComplexBenchmark<Blob<8>>();
+template void Folly::ComplexBenchmark<Blob<16>>();
+template void Folly::ComplexBenchmark<Blob<32>>();
+template void Folly::ComplexBenchmark<Blob<64>>();
+template void Folly::ComplexBenchmark<Blob<128>>();
+template void Folly::ComplexBenchmark<Blob<256>>();
+template void Folly::ComplexBenchmark<Blob<512>>();
+template void Folly::ComplexBenchmark<Blob<1024>>();
+template void Folly::ComplexBenchmark<Blob<2048>>();
+template void Folly::ComplexBenchmark<Blob<4096>>();
+template void Folly::ComplexBenchmark<Blob<8192>>();
 
 }  // namespace bench

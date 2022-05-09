@@ -65,6 +65,12 @@ static constexpr EmptyBenchmark kEmptyBenchmark;
 #define BENCH_FOLLY(name, ...) EMPTY_BENCH(name)
 #endif
 
+#ifdef ARANGODB_ENABLE
+#define BENCH_ARANGODB(name, ...) BENCH(name, ArangoDB, ##__VA_ARGS__)
+#else
+#define BENCH_ARANGODB(name, ...) EMPTY_BENCH(name)
+#endif
+
 #ifdef QT_ENABLE
 #define BENCH_QT(name, ...) BENCH(name, QT, ##__VA_ARGS__)
 #else
