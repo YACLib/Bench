@@ -1,5 +1,7 @@
 # Benchmark YACLib
 
+Most of benchmarks now adopted from folly
+
 ## Results
 
 Future benchmark [results](future/result/RESULTS.md).
