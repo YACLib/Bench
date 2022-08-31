@@ -1,12 +1,13 @@
 name: Format
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ master, main ]
-    paths-ignore: [ '**/result/**', '**.md' ]
+    branches: [ main ]
+    paths: [ '**.cpp', '**.hpp' ]
   pull_request:
-    branches: [ master, main ]
-    paths-ignore: [ '**/result/**', '**.md' ]
+    branches: [ main ]
+    paths: [ '**.cpp', '**.hpp' ]
 
 jobs:
   # TODO(MBkkt) clang-format 14, now this extension doesn't work, because clang-14 not really released yet
@@ -16,7 +17,7 @@ jobs:
   # TODO(MBkkt) Add option or workflow for reformat
 
   main:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -24,9 +25,9 @@ jobs:
           - '.'
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Run clang-format style check
-        uses: jidicula/clang-format-action@v4.5.0
+        uses: jidicula/clang-format-action@v4.6.2
         with:
           clang-format-version: 13
           check-path: ${{ matrix.path }}

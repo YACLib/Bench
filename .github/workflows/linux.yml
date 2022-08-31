@@ -1,12 +1,13 @@
-name: Sanitizer
+name: Linux
 
 on:
+  workflow_dispatch:
   push:
-    branches: [ master, main ]
-    paths-ignore: [ '**/result/**', '**.md' ]
+    branches: [ main ]
+    paths: [ '**.cpp', '**.hpp', '**.cmake', '**/CMakeLists.txt' ]
   pull_request:
-    branches: [ master, main ]
-    paths-ignore: [ '**/result/**', '**.md' ]
+    branches: [ main ]
+    paths: [ '**.cpp', '**.hpp', '**.cmake' ]
 
 jobs:
   main:
@@ -14,41 +15,55 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04 ]
+        os: [ ubuntu-22.04 ]
         build_type: [ Debug, RelWithDebInfo ]
         compiler: [ clang_libcxx, clang_libstdcxx, gcc_libstdcxx ]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Update deps on Linux
         run: |
           sudo apt-get update
           sudo wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-          sudo add-apt-repository "deb http://apt.llvm.org/focal/     llvm-toolchain-focal-14   main"
+          sudo add-apt-repository "deb http://apt.llvm.org/jammy/     llvm-toolchain-jammy-14   main"
           sudo apt-get update
           sudo apt-get install ninja-build gcc-11 g++-11 libstdc++-11-dev clang-14 lld-14 libc++-14-dev libc++abi-14-dev libboost-thread-dev
           sudo ln -sf /usr/bin/lld-14 /usr/local/bin/ld
+          sudo update-alternatives                                                                                     \
+            --install /usr/bin/gcc        gcc        /usr/bin/gcc-11        200                                        \
+            --slave   /usr/bin/g++        g++        /usr/bin/g++-11                                                   \
+            --slave   /usr/bin/gcc-ar     gcc-ar     /usr/bin/gcc-ar-11                                                \
+            --slave   /usr/bin/gcc-nm     gcc-nm     /usr/bin/gcc-nm-11                                                \
+            --slave   /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-11                                            \
+            --slave   /usr/bin/gcov       gcov       /usr/bin/gcov-11                                                  \
+            --slave   /usr/bin/gcov-tool  gcov-tool  /usr/bin/gcov-tool-11                                             \
+            --slave   /usr/bin/gcov-dump  gcov-dump  /usr/bin/gcov-dump-11
+          sudo update-alternatives --auto gcc
+          sudo update-alternatives                                                                                     \
+            --install /usr/bin/cpp        cpp        /usr/bin/cpp-11        200
+          sudo update-alternatives --auto cpp
 
       - name: Configure CMake Posix
         run: |
           build_type=${{ matrix.build_type }}
           dir="build_${{ matrix.compiler }}"
           if [[ "${{ matrix.compiler }}" == "gcc_libstdcxx" ]]; then
-            c_compiler=gcc-11; cxx_compiler=g++-11
+            cxx_compiler=g++-11
           else
-            c_compiler=clang-14; cxx_compiler=clang++-14
+            cxx_compiler=clang++-14
           fi
           if [[ "${{ matrix.compiler }}" == "clang_libcxx" ]]; then
-            options="-DLIBCXX=ON -DSTD=ON -DYACLIB=main"            
+            options="-DLIBCXX=ON"            
           else
-            options="            -DSTD=ON -DYACLIB=main -DBOOST_THREAD=ON"
+            options="-DBOOST_THREAD=ON"
           fi
-          cmake -S . -B $dir                                   \
-            -DCMAKE_BUILD_TYPE=$build_type                     \
-            -DCMAKE_C_COMPILER=${c_compiler}                   \
-            -DCMAKE_CXX_COMPILER=${cxx_compiler}               \
-            -G"Ninja"                                          \
+          cmake -S . -B $dir                                                                                           \
+            -DCMAKE_BUILD_TYPE=$build_type                                                                             \
+            -DCMAKE_CXX_COMPILER=${cxx_compiler}                                                                       \
+            -G"Ninja"                                                                                                  \
+            -DSTD=ON                                                                                                   \
+            -DYACLIB=v2022.08.23                                                                                       \
             $options
 
       - name: Build
