@@ -3,9 +3,9 @@
 #include <util/semaphore.hpp>
 #include <yaclib/algo/wait_group.hpp>
 #include <yaclib/async/future.hpp>
-#include <yaclib/coro/async_mutex.hpp>
 #include <yaclib/coro/await.hpp>
 #include <yaclib/coro/future.hpp>
+#include <yaclib/coro/mutex.hpp>
 #include <yaclib/coro/on.hpp>
 #include <yaclib/coro/task.hpp>
 #include <yaclib/exe/inline.hpp>
@@ -61,7 +61,7 @@ yaclib::Future<> MutexWork(yaclib::IExecutor& tp, auto& m, std::size_t& shared_i
   for (std::size_t i = 0; i < kQperClient; ++i) {
     co_await m.Lock();
     ++shared_id;
-    co_await m.Unlock(tp);
+    co_await m.Unlock();
     std::this_thread::sleep_for(std::chrono::nanoseconds{10});
   }
   co_return{};
@@ -201,7 +201,10 @@ void YACLib::ReleaseExecutor(detail::yb::TestExecutor* e) {
 
 void YACLib::SomeThens(detail::yb::TestExecutor* executor, size_t n, bool no_inline) {
   bool is_executor = executor != nullptr;
-  auto f = yaclib::MakeFuture(42).On(executor != nullptr ? *executor : yaclib::MakeInline());
+  // hack for old api
+  auto core = std::move(yaclib::MakeFuture(42).GetCore());
+  core->_executor = executor != nullptr ? executor : &yaclib::MakeInline();
+  auto f = yaclib::FutureOn{std::move(core)};
   f = Thens(std::move(f), n, is_executor && no_inline);
   f = Thens(std::move(f), 1, is_executor);
   f = Thens(std::move(f), n, is_executor && no_inline);
@@ -341,7 +344,7 @@ void YACLib::Fibonacci(detail::yb::TestExecutor* tp, std::size_t n) {
 }
 
 void YACLib::AsyncMutex(detail::yb::TestExecutor* tp) {
-  yaclib::AsyncMutex<false, yaclib::AsyncMutex<>::kAll> m;
+  yaclib::Mutex<false, 255> m;
   std::size_t shared_id = 0;
   yaclib::WaitGroup<> wg{kClients};
   for (std::size_t i = 0; i < kClients; ++i) {
