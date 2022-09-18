@@ -1,0 +1,22 @@
+2022-09-19T00:30:24+03:00
+Running ./build_release_main/future
+Run on (16 X 2500 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x8)
+  L1 Instruction 32 KiB (x8)
+  L2 Unified 1280 KiB (x8)
+  L3 Unified 24576 KiB (x1)
+Load Average: 0.94, 1.05, 0.82
+----------------------------------------------------------------------------
+Benchmark                                  Time             CPU   Iterations
+----------------------------------------------------------------------------
+ConstantFuture/YACLib/real_time         22.1 ns         22.1 ns     31633904
+PromiseAndFuture/YACLib/real_time       43.4 ns         43.4 ns     16141774
+Then/YACLib/0/0/real_time               82.1 ns         82.1 ns      8528890
+Then/YACLib/1/0/real_time                143 ns          143 ns      4889463
+Then/YACLib/2/0/real_time                206 ns          206 ns      3402502
+Then/YACLib/4/0/real_time                334 ns          334 ns      2074624
+Then/YACLib/8/0/real_time                598 ns          598 ns      1175807
+Then/YACLib/16/0/real_time              1085 ns         1085 ns       645662
+Then/YACLib/32/0/real_time              2058 ns         2057 ns       339903
+Then/YACLib/64/0/real_time              4019 ns         4018 ns       174550
