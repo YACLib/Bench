@@ -27,7 +27,7 @@ BENCH_BOOST_THREAD(PromiseAndFuture)->UseRealTime();
 BENCH_QT(PromiseAndFuture)->UseRealTime();
 BENCH_EXPERIMENTAL(PromiseAndFuture)->UseRealTime();
 
-BENCH_YACLIB(Then)->ArgsProduct({{0, 1, 2, 4, 8, 16, 32, 64}, {0, 1, 2}})->UseRealTime();
+BENCH_YACLIB(Then)->ArgsProduct({{0, 1, 2, 4, 8, 16, 32, 64}, {0}})->UseRealTime();
 BENCH_FOLLY(Then)->ArgsProduct({{0, 1, 2, 4, 8, 16, 32, 64}, {0, 1, 2}})->UseRealTime();
 BENCH_ARANGODB(Then)->ArgsProduct({{0, 1, 2, 4, 8, 16, 32, 64}, {0, 1, 2}})->UseRealTime();
 BENCH_BOOST_THREAD(Then)->ArgsProduct({{0, 1, 2, 4, 8, 16, 32, 64}, {0, 1, 2}})->UseRealTime();
