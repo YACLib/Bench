@@ -14,6 +14,7 @@ Need to install:
 ```
 cmake
 ninja
+google-glog
 gcc
 g++
 clang
