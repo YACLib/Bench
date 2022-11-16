@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eou pipefail
+
 cmake -S . -B ./build_clang_libcxx \
   -GNinja \
   -DCMAKE_BUILD_TYPE=Release \
